@@ -1,6 +1,8 @@
 # Whiteout LED Controller
 
-Multi-threaded LED controller for ESP32 with smooth fading and volatile random blinking.
+**Firmware for ESP32** - Multi-threaded LED controller with smooth fading and volatile random blinking.
+
+This firmware runs directly on ESP32 microcontrollers to control 6 physical LEDs with advanced lighting effects.
 
 ## Features
 

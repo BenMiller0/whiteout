@@ -2,6 +2,10 @@
 #include "constants.hpp"
 #include "led_blink_task.hpp"
 
+#if TEST_MODE
+#include "test_mode.hpp"
+#endif
+
 // Parameter array. Includes pin # and blink delay
 static LedTaskParams ledParams[6] = {
     {  L_BELT_RED,        L_BELT_RED_DELAY,       VOLATILE_BLINKING,   SMOOTH_BLINKING,   L_BELT_RED_VOLATILITY        },
@@ -14,11 +18,29 @@ static LedTaskParams ledParams[6] = {
 
 
 void setup() {
-    // Initialize PWM channels for smooth blinking
+    Serial.begin(115200);
+    delay(1000); // Wait for serial to be ready
+    
+    Serial.println("LED Blink Controller Starting...");
+    
+#if TEST_MODE
+    Serial.println("TEST MODE ENABLED - Entering test mode");
+    runTestMode();
+#else
+    Serial.println("NORMAL MODE - Initializing LED tasks");
+    
+    // Initialize GPIO pins based on blinking mode
     for (int i = 0; i < 6; i++) {
-        ledcSetup(i, PWM_FREQUENCY, PWM_RESOLUTION);
-        ledcAttachPin(ledParams[i].pin, i);
-        ledcWrite(i, 0); // Start with LED off
+        if (ledParams[i].smoothBlinking == 1) {
+            // Set up PWM channel for smooth blinking
+            ledcSetup(i, PWM_FREQUENCY, PWM_RESOLUTION);
+            ledcAttachPin(ledParams[i].pin, i);
+            ledcWrite(i, 0); // Start with LED off
+        } else {
+            // Set up as digital output for digital blinking
+            pinMode(ledParams[i].pin, OUTPUT);
+            digitalWrite(ledParams[i].pin, LOW); // Start with LED off
+        }
     }
 
     // Create separate thread for each LED
@@ -34,7 +56,15 @@ void setup() {
             NULL
         );
     }
+#endif
 }
 
 
-void loop() {} // Empty, FreeRTOS threads take over
+void loop() {
+#if TEST_MODE
+    // Test mode handles its own execution in runTestMode()
+    delay(1000); // Prevent watchdog timeout
+#else
+    // Empty, FreeRTOS threads take over in normal mode
+#endif
+}

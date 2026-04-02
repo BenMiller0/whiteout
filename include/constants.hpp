@@ -14,11 +14,14 @@
 #define R_BELT_GREEN_0_DELAY    1000
 #define R_BELT_GREEN_1_DELAY    1000
 
+// Test mode (set to 1 to enable mode cycling test)
+#define TEST_MODE              1
+
 // Volatile random blinking mode (set to 1 to enable)
 #define VOLATILE_BLINKING       0
 
 // Smooth blinking mode (set to 1 to enable PWM fading)
-#define SMOOTH_BLINKING         1
+#define SMOOTH_BLINKING         0
 
 // Smooth blinking configuration
 #define FADE_STEPS              50    // Number of steps for fade in/out
