@@ -1,41 +1,24 @@
 #include <Arduino.h>
 #include "constants.hpp"
-
-
-// This is the struct that will be passed in as the params to each thread created for each LED
-struct LedTaskParams {
-    int pin;
-    int delay;
-};
-
+#include "led_blink_task.hpp"
 
 // Parameter array. Includes pin # and blink delay
 static LedTaskParams ledParams[6] = {
-    {  L_BELT_RED,        L_BELT_REDL_DELAY      },
-    {  L_BELT_GREEN_0,    L_BELT_GREEN_0_DELAY   },
-    {  L_BELT_GREEN_1,    L_BELT_GREEN_1_DELAY   },
-    {  R_BELT_RED,        R_BELT_RED_DELAY       },
-    {  R_BELT_GREEN_0,    R_BELT_GREEN_0_DELAY   }, 
-    {  R_BELT_GREEN_1,    R_BELT_GREEN_1_DELAY   },  
+    {  L_BELT_RED,        L_BELT_RED_DELAY,       VOLATILE_BLINKING,   SMOOTH_BLINKING,   L_BELT_RED_VOLATILITY        },
+    {  L_BELT_GREEN_0,    L_BELT_GREEN_0_DELAY,   VOLATILE_BLINKING,   SMOOTH_BLINKING,   L_BELT_GREEN_0_VOLATILITY    },
+    {  L_BELT_GREEN_1,    L_BELT_GREEN_1_DELAY,   VOLATILE_BLINKING,   SMOOTH_BLINKING,   L_BELT_GREEN_1_VOLATILITY    },
+    {  R_BELT_RED,        R_BELT_RED_DELAY,       VOLATILE_BLINKING,   SMOOTH_BLINKING,   R_BELT_RED_VOLATILITY        },
+    {  R_BELT_GREEN_0,    R_BELT_GREEN_0_DELAY,   VOLATILE_BLINKING,   SMOOTH_BLINKING,   R_BELT_GREEN_0_VOLATILITY    }, 
+    {  R_BELT_GREEN_1,    R_BELT_GREEN_1_DELAY,   VOLATILE_BLINKING,   SMOOTH_BLINKING,   R_BELT_GREEN_1_VOLATILITY    },  
 };
 
 
-// Definition of thread that is created for each LED
-void ledBlinkTask(void *pvParameters) {
-    LedTaskParams* params = (LedTaskParams*)pvParameters;
-    while (true) {
-        digitalWrite(params->pin, HIGH);
-        vTaskDelay(params->delay / portTICK_PERIOD_MS);
-        digitalWrite(params->pin, LOW);
-        vTaskDelay(params->delay / portTICK_PERIOD_MS);
-    }
-}
-
-
 void setup() {
-    // Set each LED GPIO pun as output pin
-    for (LedTaskParams entry : ledParams) {
-        pinMode(entry.pin, OUTPUT);
+    // Initialize PWM channels for smooth blinking
+    for (int i = 0; i < 6; i++) {
+        ledcSetup(i, PWM_FREQUENCY, PWM_RESOLUTION);
+        ledcAttachPin(ledParams[i].pin, i);
+        ledcWrite(i, 0); // Start with LED off
     }
 
     // Create separate thread for each LED
