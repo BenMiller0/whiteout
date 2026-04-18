@@ -2,16 +2,46 @@
 #include "blink_helpers.hpp"
 #include <Arduino.h>
 
-// Main LED blink task
-void ledBlinkTask(void *pvParameters) {
-    LedTaskParams* params = (LedTaskParams*)pvParameters;
+// =============================================================================
+// LED BLINK TASK - MAIN LED CONTROL TASK
+// =============================================================================
+
+// -----------------------------------------------------------------------------
+// MAIN LED BLINK TASK
+// -----------------------------------------------------------------------------
+// This function runs as a FreeRTOS task for each LED.
+// It handles the main blinking logic and delegates to helper functions.
+void ledBlinkTask(void* pvParameters) {
+    LedTaskParams* params = static_cast<LedTaskParams*>(pvParameters);
     
-    // Initialize random seed for this task
+    // Initialize random seed for this task using pin number for uniqueness
     randomSeed(millis() + params->pin);
     
     // Get PWM channel for this LED
     int channel = getPwmChannel(params->pin);
     
+#if NORMAL_MODE
+    // In normal mode, check if this is a red LED
+    if (params->pin == L_BELT_RED || params->pin == R_BELT_RED) {
+        // Red LEDs blink on for ~10s, off for 1s randomly
+        while (true) {
+            handleNormalModeRedLED(params);
+        }
+    }
+    // Green LEDs are solid (volatility = 0.0)
+    if (params->volatilityMultiplier == 0.0f) {
+        handleSolidLED(params, channel);
+        return;
+    }
+#else
+    // Check if this LED should be solid (volatility = 0.0)
+    if (params->volatilityMultiplier == 0.0f) {
+        handleSolidLED(params, channel);
+        return; // This will never return due to infinite loop in handleSolidLED
+    }
+#endif
+    
+    // Main blinking loop for non-normal modes
     while (true) {
         if (params->smoothBlinking == 1) {
             handleSmoothBlinking(params, channel);

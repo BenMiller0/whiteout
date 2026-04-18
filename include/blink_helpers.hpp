@@ -3,12 +3,42 @@
 
 #include "led_blink_task.hpp"
 
-// Helper function prototypes
+// =============================================================================
+// LED BLINKING HELPER FUNCTIONS
+// =============================================================================
+
+// -----------------------------------------------------------------------------
+// PWM FADE EFFECTS
+// -----------------------------------------------------------------------------
+// Smooth fade in effect for PWM channels
 void fadeIn(int channel, int steps, int stepDelay);
+
+// Smooth fade out effect for PWM channels
 void fadeOut(int channel, int steps, int stepDelay);
+
+// -----------------------------------------------------------------------------
+// LED CONTROL UTILITIES
+// -----------------------------------------------------------------------------
+// Get PWM channel number for a given GPIO pin
 int getPwmChannel(int pin);
+
+// Calculate delay with volatility adjustments
 int calculateDelay(LedTaskParams* params);
+
+// Handle smooth blinking mode with fade effects
 void handleSmoothBlinking(LedTaskParams* params, int channel);
+
+// Helper function prototypes
+void initializeGpioPins(LedTaskParams* params, int count);
+void initializePwmPins(LedTaskParams* params, int count);
+
+// Handle digital blinking mode (on/off without fade)
 void handleDigitalBlinking(LedTaskParams* params);
 
-#endif
+// Handle solid LED mode (always on, no blinking)
+void handleSolidLED(LedTaskParams* params, int channel);
+
+// Handle normal mode red LED behavior (on for ~10s, off for 1s randomly)
+void handleNormalModeRedLED(LedTaskParams* params);
+
+#endif // BLINK_HELPERS_HPP

@@ -3,16 +3,26 @@
 
 #include "constants.hpp"
 
-// This is the struct that will be passed in as the params to each thread created for each LED
+// =============================================================================
+// LED BLINK TASK - DATA STRUCTURES AND DECLARATIONS
+// =============================================================================
+
+// -----------------------------------------------------------------------------
+// LED TASK PARAMETERS STRUCTURE
+// -----------------------------------------------------------------------------
+// This structure contains all parameters needed for each LED task
 struct LedTaskParams {
-    int pin;
-    int delay;
-    int volatileBlinking;
-    int smoothBlinking;
-    float volatilityMultiplier;
+    int pin;                    // GPIO pin number for the LED
+    int delay;                  // Base delay in milliseconds
+    int volatileBlinking;       // Enable/disable volatile (random) blinking
+    int smoothBlinking;         // Enable/disable smooth PWM fading
+    float volatilityMultiplier; // Volatility factor for random timing
 };
 
-// Definition of thread that is created for each LED
-void ledBlinkTask(void *pvParameters);
+// -----------------------------------------------------------------------------
+// FUNCTION DECLARATIONS
+// -----------------------------------------------------------------------------
+// Main task function for LED blinking - runs as a FreeRTOS task
+void ledBlinkTask(void* pvParameters);
 
-#endif
+#endif // LED_BLINK_TASK_HPP

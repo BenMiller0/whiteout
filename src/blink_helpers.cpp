@@ -1,8 +1,15 @@
 #include "blink_helpers.hpp"
-#include "led_blink_task.hpp"
 #include <Arduino.h>
 
-// Helper function for smooth fade in
+// =============================================================================
+// LED BLINKING HELPER FUNCTIONS
+// =============================================================================
+
+// -----------------------------------------------------------------------------
+// PWM FADE EFFECTS
+// -----------------------------------------------------------------------------
+// Smooth fade in effect for PWM channels
+// Increases LED brightness from 0 to maximum over specified steps
 void fadeIn(int channel, int steps, int stepDelay) {
     for (int i = 0; i <= steps; i++) {
         int duty = (i * 255) / steps;  // Convert step to PWM duty cycle
@@ -11,7 +18,8 @@ void fadeIn(int channel, int steps, int stepDelay) {
     }
 }
 
-// Helper function for smooth fade out
+// Smooth fade out effect for PWM channels
+// Decreases LED brightness from maximum to 0 over specified steps
 void fadeOut(int channel, int steps, int stepDelay) {
     for (int i = steps; i >= 0; i--) {
         int duty = (i * 255) / steps;  // Convert step to PWM duty cycle
@@ -20,29 +28,53 @@ void fadeOut(int channel, int steps, int stepDelay) {
     }
 }
 
-// Get PWM channel based on pin number
+// -----------------------------------------------------------------------------
+// LED CONTROL UTILITIES
+// -----------------------------------------------------------------------------
+// Get PWM channel number for a given GPIO pin
+// Returns a deterministic channel number (0-5) for each LED pin
 int getPwmChannel(int pin) {
-    if (pin == L_BELT_RED) return 0;
-    else if (pin == L_BELT_GREEN_0) return 1;
-    else if (pin == L_BELT_GREEN_1) return 2;
-    else if (pin == R_BELT_RED) return 3;
-    else if (pin == R_BELT_GREEN_0) return 4;
-    else if (pin == R_BELT_GREEN_1) return 5;
-    return 0; // Default fallback
+    switch (pin) {
+        case L_BELT_RED:        return 0;
+        case L_BELT_GREEN_0:    return 1;
+        case L_BELT_GREEN_1:    return 2;
+        case R_BELT_RED:        return 3;
+        case R_BELT_GREEN_0:    return 4;
+        case R_BELT_GREEN_1:    return 5;
+        default:                return 0; // Default fallback
+    }
 }
 
-// Calculate delay based on volatility settings
+// Calculate delay with volatility adjustments
+// If volatile blinking is enabled, adds random variation to the base delay
 int calculateDelay(LedTaskParams* params) {
     if (params->volatileBlinking == 1) {
-        int baseDelay = params->delay; // Use full delay, not half
-        int randomRange = (int)(baseDelay * params->volatilityMultiplier);
-        return max(100, baseDelay + (int)random(-randomRange, randomRange));
+        int baseDelay = params->delay;
+        int randomRange = static_cast<int>(baseDelay * params->volatilityMultiplier);
+        return max(100, baseDelay + static_cast<int>(random(-randomRange, randomRange)));
     } else {
         return params->delay;
     }
 }
 
+// Handle normal mode red LED behavior (on for ~10s, off for 1s randomly)
+void handleNormalModeRedLED(LedTaskParams* params) {
+    // Turn LED on
+    digitalWrite(params->pin, HIGH);
+    
+    // Calculate on time with random variation (10s +/- 3s)
+    int onTime = RED_LED_BASE_ON_TIME + random(-RED_LED_RANDOM_RANGE, RED_LED_RANDOM_RANGE);
+    vTaskDelay(onTime / portTICK_PERIOD_MS);
+    
+    // Turn LED off
+    digitalWrite(params->pin, LOW);
+    
+    // Keep off for 1 second
+    vTaskDelay(RED_LED_OFF_TIME / portTICK_PERIOD_MS);
+}
+
 // Handle smooth blinking mode with fade effects
+// Uses PWM to create smooth fade in/out transitions
 void handleSmoothBlinking(LedTaskParams* params, int channel) {
     // Fade in
     fadeIn(channel, FADE_STEPS, FADE_DELAY);
@@ -60,6 +92,7 @@ void handleSmoothBlinking(LedTaskParams* params, int channel) {
 }
 
 // Handle digital blinking mode (on/off without fade)
+// Uses simple digital on/off transitions
 void handleDigitalBlinking(LedTaskParams* params) {
     // Turn LED on
     digitalWrite(params->pin, HIGH);
@@ -74,4 +107,33 @@ void handleDigitalBlinking(LedTaskParams* params) {
     // Off delay
     int offDelay = calculateDelay(params);
     vTaskDelay(offDelay / portTICK_PERIOD_MS);
+}
+
+// Handle solid LED mode (always on, no blinking)
+// Turns LED on and keeps it on indefinitely
+void handleSolidLED(LedTaskParams* params, int channel) {
+    // Turn LED on and keep it on
+    digitalWrite(params->pin, HIGH);
+    
+    // Just wait indefinitely, LED stays solid
+    while (true) {
+        vTaskDelay(1000 / portTICK_PERIOD_MS);
+    }
+}
+
+// Initialize GPIO pins for digital mode
+void initializeGpioPins(LedTaskParams* params, int count) {
+    for (int i = 0; i < count; i++) {
+        pinMode(params[i].pin, OUTPUT);
+        digitalWrite(params[i].pin, LOW);
+    }
+}
+
+// Initialize PWM pins for smooth blinking mode
+void initializePwmPins(LedTaskParams* params, int count) {
+    for (int i = 0; i < count; i++) {
+        ledcSetup(i, PWM_FREQUENCY, PWM_RESOLUTION);
+        ledcAttachPin(params[i].pin, i);
+        ledcWrite(i, 0);
+    }
 }
