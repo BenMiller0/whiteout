@@ -11,10 +11,10 @@
 // PWM FADE EFFECTS
 // -----------------------------------------------------------------------------
 // Smooth fade in effect for PWM channels
-void fadeIn(int channel, int steps, int stepDelay);
+void fadeIn(int channel, int steps, int stepDelay, int maxBrightness);
 
 // Smooth fade out effect for PWM channels
-void fadeOut(int channel, int steps, int stepDelay);
+void fadeOut(int channel, int steps, int stepDelay, int maxBrightness);
 
 // -----------------------------------------------------------------------------
 // LED CONTROL UTILITIES
@@ -37,8 +37,5 @@ void handleDigitalBlinking(LedTaskParams* params);
 
 // Handle solid LED mode (always on, no blinking)
 void handleSolidLED(LedTaskParams* params, int channel);
-
-// Handle normal mode red LED behavior (on for ~10s, off for 1s randomly)
-void handleNormalModeRedLED(LedTaskParams* params);
 
 #endif // BLINK_HELPERS_HPP

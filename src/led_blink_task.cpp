@@ -1,5 +1,6 @@
 #include "led_blink_task.hpp"
 #include "blink_helpers.hpp"
+#include "normal_mode.hpp"
 #include <Arduino.h>
 
 // =============================================================================
@@ -20,24 +21,27 @@ void ledBlinkTask(void* pvParameters) {
     // Get PWM channel for this LED
     int channel = getPwmChannel(params->pin);
     
+    // Check if this LED should be solid (volatility = 0.0)
+    // This applies to both NORMAL_MODE and other modes
+    if (params->volatilityMultiplier == 0.0f) {
+        handleSolidLED(params, channel);
+        return; // This will never return due to infinite loop in handleSolidLED
+    }
+    
 #if NORMAL_MODE
-    // In normal mode, check if this is a red LED
-    if (params->pin == L_BELT_RED || params->pin == R_BELT_RED) {
+    // In normal mode, check if this is a red belt LED
+    if (isNormalModeRedLED(params->pin)) {
         // Red LEDs blink on for ~10s, off for 1s randomly
         while (true) {
             handleNormalModeRedLED(params);
         }
     }
-    // Green LEDs are solid (volatility = 0.0)
-    if (params->volatilityMultiplier == 0.0f) {
-        handleSolidLED(params, channel);
-        return;
-    }
-#else
-    // Check if this LED should be solid (volatility = 0.0)
-    if (params->volatilityMultiplier == 0.0f) {
-        handleSolidLED(params, channel);
-        return; // This will never return due to infinite loop in handleSolidLED
+    // Check if this is a chest red LED for random blinking
+    if (isNormalModeChestLED(params->pin)) {
+        // Chest red LEDs randomly blink on for 15s +/- 10s
+        while (true) {
+            handleChestRedLED(params);
+        }
     }
 #endif
     

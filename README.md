@@ -1,10 +1,10 @@
 # Whiteout LED Controller
 
-ESP32 firmware for 6-channel LED control with smooth fading and random blinking.
+Darth vadar suit firmware.
 
 ## Features
 
-- **6 Independent LEDs** with dedicated FreeRTOS tasks
+- **9 Independent LEDs** with dedicated FreeRTOS tasks
 - **Smooth PWM fading** or digital on/off blinking
 - **Volatile random mode** with per-LED volatility control
 - **Test mode** for cycling through all configurations
@@ -34,6 +34,9 @@ If this flag is set to 1 it will cycle through each combination of modes for tes
 - R_BELT_RED: Pin 25
 - R_BELT_GREEN_0: Pin 33
 - R_BELT_GREEN_1: Pin 32
+- CHEST_RED_1: Pin 4
+- CHEST_RED_2: Pin 22
+- CHEST_RED_3: Pin 23
 
 ### Timing
 ```cpp

@@ -3,6 +3,7 @@
 #include "constants.hpp"
 #include "led_blink_task.hpp"
 #include "blink_helpers.hpp"
+#include "normal_mode.hpp"
 #include "memory_profiler.hpp"
 
 #if TEST_MODE
@@ -19,12 +20,18 @@
 // Parameter array for all LEDs. Includes pin #, delay, and mode settings.
 // The configuration adapts based on NORMAL_MODE vs VOLATILE_BLINKING mode.
 static LedTaskParams ledParams[NUM_LEDS] = {
-    {L_BELT_RED,        L_BELT_RED_DELAY,       NORMAL_MODE ? 1 : VOLATILE_BLINKING, NORMAL_MODE ? 0 : SMOOTH_BLINKING,   NORMAL_MODE ? 0.1f : L_BELT_RED_VOLATILITY},
-    {L_BELT_GREEN_0,    L_BELT_GREEN_0_DELAY,   NORMAL_MODE ? 0 : VOLATILE_BLINKING, NORMAL_MODE ? 0 : SMOOTH_BLINKING,   NORMAL_MODE ? 0.0f : L_BELT_GREEN_0_VOLATILITY},
-    {L_BELT_GREEN_1,    L_BELT_GREEN_1_DELAY,   NORMAL_MODE ? 0 : VOLATILE_BLINKING, NORMAL_MODE ? 0 : SMOOTH_BLINKING,   NORMAL_MODE ? 0.0f : L_BELT_GREEN_1_VOLATILITY},
-    {R_BELT_RED,        R_BELT_RED_DELAY,       NORMAL_MODE ? 1 : VOLATILE_BLINKING, NORMAL_MODE ? 0 : SMOOTH_BLINKING,   NORMAL_MODE ? 0.1f : R_BELT_RED_VOLATILITY},
-    {R_BELT_GREEN_0,    R_BELT_GREEN_0_DELAY,   NORMAL_MODE ? 0 : VOLATILE_BLINKING, NORMAL_MODE ? 0 : SMOOTH_BLINKING,   NORMAL_MODE ? 0.0f : R_BELT_GREEN_0_VOLATILITY},
-    {R_BELT_GREEN_1,    R_BELT_GREEN_1_DELAY,   NORMAL_MODE ? 0 : VOLATILE_BLINKING, NORMAL_MODE ? 0 : SMOOTH_BLINKING,   NORMAL_MODE ? 0.0f : R_BELT_GREEN_1_VOLATILITY}
+    // Left Belt LEDs
+    {L_BELT_RED,        L_BELT_RED_DELAY,       NORMAL_MODE ? 1 : VOLATILE_BLINKING, NORMAL_MODE ? 0 : SMOOTH_BLINKING,   NORMAL_MODE ? 0.1f : L_BELT_RED_VOLATILITY,        L_BELT_RED_BRIGHTNESS},
+    {L_BELT_GREEN_0,    L_BELT_GREEN_0_DELAY,   NORMAL_MODE ? 0 : VOLATILE_BLINKING, NORMAL_MODE ? 0 : SMOOTH_BLINKING,   NORMAL_MODE ? 0.0f : L_BELT_GREEN_0_VOLATILITY,    L_BELT_GREEN_0_BRIGHTNESS},
+    {L_BELT_GREEN_1,    L_BELT_GREEN_1_DELAY,   NORMAL_MODE ? 0 : VOLATILE_BLINKING, NORMAL_MODE ? 0 : SMOOTH_BLINKING,   NORMAL_MODE ? 0.0f : L_BELT_GREEN_1_VOLATILITY,    L_BELT_GREEN_1_BRIGHTNESS},
+    // Right Belt LEDs
+    {R_BELT_RED,        R_BELT_RED_DELAY,       NORMAL_MODE ? 1 : VOLATILE_BLINKING, NORMAL_MODE ? 0 : SMOOTH_BLINKING,   NORMAL_MODE ? 0.1f : R_BELT_RED_VOLATILITY,        R_BELT_RED_BRIGHTNESS},
+    {R_BELT_GREEN_0,    R_BELT_GREEN_0_DELAY,   NORMAL_MODE ? 0 : VOLATILE_BLINKING, NORMAL_MODE ? 0 : SMOOTH_BLINKING,   NORMAL_MODE ? 0.0f : R_BELT_GREEN_0_VOLATILITY,    R_BELT_GREEN_0_BRIGHTNESS},
+    {R_BELT_GREEN_1,    R_BELT_GREEN_1_DELAY,   NORMAL_MODE ? 0 : VOLATILE_BLINKING, NORMAL_MODE ? 0 : SMOOTH_BLINKING,   NORMAL_MODE ? 0.0f : R_BELT_GREEN_1_VOLATILITY,    R_BELT_GREEN_1_BRIGHTNESS},
+    // Chest LEDs
+    {CHEST_RED_1,       CHEST_RED_1_DELAY,      NORMAL_MODE ? 0 : VOLATILE_BLINKING, NORMAL_MODE ? 0 : SMOOTH_BLINKING,   NORMAL_MODE ? 0.05f : CHEST_RED_1_VOLATILITY,       CHEST_RED_1_BRIGHTNESS},
+    {CHEST_RED_2,       CHEST_RED_2_DELAY,      NORMAL_MODE ? 0 : VOLATILE_BLINKING, NORMAL_MODE ? 0 : SMOOTH_BLINKING,   NORMAL_MODE ? 0.05f : CHEST_RED_2_VOLATILITY,       CHEST_RED_2_BRIGHTNESS},
+    {CHEST_RED_3,       CHEST_RED_3_DELAY,      NORMAL_MODE ? 0 : VOLATILE_BLINKING, NORMAL_MODE ? 0 : SMOOTH_BLINKING,   NORMAL_MODE ? 0.05f : CHEST_RED_3_VOLATILITY,       CHEST_RED_3_BRIGHTNESS}
 };
 
 // -----------------------------------------------------------------------------
@@ -52,17 +59,6 @@ void setup() {
     );
 #endif
 
-#if DISABLE_WIFI
-    // Disable WiFi for power savings
-    WiFi.mode(WIFI_OFF);
-    WiFi.persistent(false);
-#endif
-
-#if DISABLE_BLUETOOTH
-    // Disable Bluetooth for power savings
-    btStop();
-#endif
-
 #if CPU_FREQUENCY_MHZ != 240
     // Lower CPU frequency for power savings
     setCpuFrequencyMhz(CPU_FREQUENCY_MHZ);
@@ -78,20 +74,8 @@ void setup() {
     Serial.println("NORMAL MODE - Initializing LED tasks");
 #endif
     
-    // Check if any LEDs use smooth blinking
-    bool hasSmoothBlinking = false;
-    for (int i = 0; i < NUM_LEDS; i++) {
-        if (ledParams[i].smoothBlinking == 1) {
-            hasSmoothBlinking = true;
-            break;
-        }
-    }
-    
-    if (hasSmoothBlinking) {
-        initializePwmPins(ledParams, NUM_LEDS);
-    } else {
-        initializeGpioPins(ledParams, NUM_LEDS);
-    }
+    // Always initialize PWM pins for brightness control
+    initializePwmPins(ledParams, NUM_LEDS);
 
     // Create separate FreeRTOS task for each LED
     TaskHandle_t ledTaskHandles[NUM_LEDS];

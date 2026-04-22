@@ -1,0 +1,4 @@
+# Disable Bluetooth for power savings
+CONFIG_BT_ENABLED=n
+CONFIG_BT_BLUEDROID_ENABLED=n
+CONFIG_BT NimBLE=n

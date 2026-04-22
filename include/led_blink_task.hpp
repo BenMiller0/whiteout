@@ -17,6 +17,7 @@ struct LedTaskParams {
     int volatileBlinking;       // Enable/disable volatile (random) blinking
     int smoothBlinking;         // Enable/disable smooth PWM fading
     float volatilityMultiplier; // Volatility factor for random timing
+    int brightness;             // LED brightness (0-255 PWM range)
 };
 
 // -----------------------------------------------------------------------------
