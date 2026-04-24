@@ -9,6 +9,7 @@ Darth Vader suit firmware built on FreeRTOS.
 - **Smooth PWM fading** or digital on/off blinking
 - **Volatile random mode** with per-LED volatility control
 - **Per-LED brightness control** for fine-tuned appearance
+- **Capacitive touch brightness control** for belt red LEDs
 - **Memory profiling** for monitoring task performance
 - **Power management** with light sleep and CPU frequency scaling
 - **Test mode** for cycling through all configurations
@@ -53,6 +54,9 @@ For battery operation, configure these settings:
 - CHEST_RED_2: Pin 22
 - CHEST_RED_3: Pin 23
 
+### Touch Sensor Pin
+- TOUCH_BRIGHTNESS_PIN: GPIO 14 (T6) - Capacitive touch for belt red LED brightness control
+
 ### Timing
 ```cpp
 // Base delays (ms)
@@ -81,10 +85,18 @@ For battery operation, configure these settings:
 ### Brightness
 Each LED has individual brightness control (0-255 PWM range):
 ```cpp
-#define L_BELT_RED_BRIGHTNESS          10
-#define L_BELT_GREEN_0_BRIGHTNESS      100
+#define L_BELT_RED_BRIGHTNESS          100
+#define L_BELT_GREEN_0_BRIGHTNESS      150
 // ... etc for all LEDs
 ```
+
+### Touch Sensor Brightness Control
+The capacitive touch sensor on GPIO 14 allows real-time brightness adjustment for both belt red LEDs (L_BELT_RED and R_BELT_RED):
+- **Touch behavior**: Each touch increments to the next brightness level (button-like)
+- **Debounce**: 1 second between touches to prevent accidental triggers
+- **Brightness levels**: 13 linear steps from 2 to 255 (2, 4, 50, 70, 90, 110, 130, 150, 170, 190, 210, 230, 255)
+- **Immediate sync**: Both LEDs update instantly regardless of blinking phase
+- **Serial output**: Enable `ENABLE_SERIAL_OUTPUT` to see brightness changes in serial monitor
 
 ## Build & Upload
 

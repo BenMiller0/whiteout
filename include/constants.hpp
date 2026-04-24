@@ -28,6 +28,9 @@
 #define CHEST_RED_2             22
 #define CHEST_RED_3             23
 
+// Touch Sensor Pins
+#define TOUCH_BRIGHTNESS_PIN    14    // GPIO 14 (T6) for brightness control
+
 // -----------------------------------------------------------------------------
 // BLINK TIMING CONFIGURATION
 // -----------------------------------------------------------------------------
@@ -95,10 +98,10 @@
 // -----------------------------------------------------------------------------
 // Brightness values for each LED (0-255 PWM range)
 // 255 = maximum brightness, 0 = off
-#define L_BELT_RED_BRIGHTNESS          10
-#define L_BELT_GREEN_0_BRIGHTNESS      100
-#define L_BELT_GREEN_1_BRIGHTNESS      100
-#define R_BELT_RED_BRIGHTNESS          10
+#define L_BELT_RED_BRIGHTNESS          100
+#define L_BELT_GREEN_0_BRIGHTNESS      150
+#define L_BELT_GREEN_1_BRIGHTNESS      150
+#define R_BELT_RED_BRIGHTNESS          100
 #define R_BELT_GREEN_0_BRIGHTNESS      100
 #define R_BELT_GREEN_1_BRIGHTNESS      100
 #define CHEST_RED_1_BRIGHTNESS         100
@@ -108,7 +111,7 @@
 // -----------------------------------------------------------------------------
 // POWER MANAGEMENT CONFIGURATION (BATTERY MODE)
 // -----------------------------------------------------------------------------
-#define ENABLE_SERIAL_OUTPUT           0     // Disable Serial in normal mode for power savings
+#define ENABLE_SERIAL_OUTPUT           0     // Enable Serial for brightness feedback
 #define ENABLE_MEMORY_PROFILING        0     // Disable memory profiler in normal mode
 #define DISABLE_WIFI                   1     // Disable WiFi for power savings
 #define CPU_FREQUENCY_MHZ              80    // Lower CPU frequency (80MHz instead of 240MHz)

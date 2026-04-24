@@ -34,6 +34,17 @@ static LedTaskParams ledParams[NUM_LEDS] = {
     {CHEST_RED_3,       CHEST_RED_3_DELAY,      NORMAL_MODE ? 0 : VOLATILE_BLINKING, NORMAL_MODE ? 0 : SMOOTH_BLINKING,   NORMAL_MODE ? 0.05f : CHEST_RED_3_VOLATILITY,       CHEST_RED_3_BRIGHTNESS}
 };
 
+// Touch sensor brightness control
+static int currentBeltRedBrightness = L_BELT_RED_BRIGHTNESS;
+static int touchThreshold = 30;  // Touch threshold (lower = more sensitive)
+static unsigned long lastTouchTime = 0;
+static const unsigned long touchDebounce = 1000;  // Debounce time in ms (1 second)
+
+// Linear brightness levels (evenly spaced for predictable increments)
+static const int brightnessLevels[] = {2, 4, 50, 70, 90, 110, 130, 150, 170, 190, 210, 230, 255};
+static const int numBrightnessLevels = 13;
+static int currentBrightnessIndex = 0;
+
 // -----------------------------------------------------------------------------
 // SETUP FUNCTION
 // -----------------------------------------------------------------------------
@@ -107,6 +118,43 @@ void loop() {
     // Test mode handles its own execution in runTestMode()
     delay(1000); // Prevent watchdog timeout
 #else
-    // Empty loop - FreeRTOS tasks handle all LED control in normal mode
+    // Touch sensor brightness control for both belt red LEDs
+    int touchValue = touchRead(TOUCH_BRIGHTNESS_PIN);
+    
+    if (touchValue < touchThreshold) {
+        unsigned long currentTime = millis();
+        
+        // Debounce touch detection
+        if (currentTime - lastTouchTime > touchDebounce) {
+            lastTouchTime = currentTime;
+            
+            // Cycle through perceptually linear brightness levels
+            currentBrightnessIndex = (currentBrightnessIndex + 1) % numBrightnessLevels;
+            currentBeltRedBrightness = brightnessLevels[currentBrightnessIndex];
+            
+            // Update the brightness for both belt red LEDs
+            ledParams[0].brightness = currentBeltRedBrightness;  // L_BELT_RED
+            ledParams[3].brightness = currentBeltRedBrightness;  // R_BELT_RED
+            
+            // Force immediate PWM update for both LEDs to ensure sync
+            int lBeltChannel = getPwmChannel(L_BELT_RED);
+            int rBeltChannel = getPwmChannel(R_BELT_RED);
+            ledcWrite(lBeltChannel, currentBeltRedBrightness);
+            ledcWrite(rBeltChannel, currentBeltRedBrightness);
+            
+#if ENABLE_SERIAL_OUTPUT
+            Serial.print("Touch detected! Belt red LEDs brightness set to: ");
+            Serial.print(currentBeltRedBrightness);
+            Serial.print(" (level ");
+            Serial.print(currentBrightnessIndex + 1);
+            Serial.println("/");
+            Serial.print(numBrightnessLevels);
+            Serial.println(")");
+#endif
+        }
+    }
+    
+    // Small delay to prevent overwhelming the CPU
+    delay(50);
 #endif
 }
