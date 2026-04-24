@@ -1,5 +1,17 @@
 # Darth Vader Suit Firmware
-Built on FreeRTOS. For Star Wars Club @ UC San Diego's Screen accurate Darth Vader Suit used for club promotion and film making. This firmware controls the blinking of each light on his suit. Makes them easily programmable and optimizes CPU usage to conserve power and boost performance.
+Built on FreeRTOS. For Star Wars Club @ UC San Diego's Screen accurate Darth Vader Suit used for club promotion and film making. Optimizes CPU usage to conserve power and boost performance.
+
+## Features
+
+- **9 Independent LEDs** with dedicated FreeRTOS tasks
+- **Capacitive touch brightness control** for belt red LEDs
+- **Normal mode** with realistic breathing patterns for red LEDs
+- **Smooth PWM fading** or digital on/off blinking
+- **Volatile random mode** with per-LED volatility control
+- **Per-LED brightness control** for fine-tuned appearance
+- **Memory profiling** for monitoring task performance
+- **Power management** with light sleep and CPU frequency scaling
+- **Test mode** for cycling through all configurations
 
 ## Quick Start
 
