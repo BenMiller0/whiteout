@@ -7,14 +7,43 @@ const PORT = process.env.PORT || 8080;
 
 // ---- HTTP server (serves controller page) ----
 const server = http.createServer((req, res) => {
+  console.log("Request:", req.url);
+
   if (req.url === '/') {
     fs.readFile('./controller.html', (err, data) => {
+      if (err) {
+        res.writeHead(500);
+        return res.end("Error loading controller");
+      }
       res.writeHead(200, { 'Content-Type': 'text/html' });
       res.end(data);
     });
+
+  } else if (req.url === '/chest') {
+    fs.readFile('./player.html', (err, data) => {
+      if (err) {
+        console.error(err);
+        res.writeHead(500);
+        return res.end("Error loading player");
+      }
+      res.writeHead(200, { 'Content-Type': 'text/html' });
+      res.end(data);
+    });
+
+  } else if (req.url.startsWith('/audio/')) {
+    const filePath = path.join(__dirname, req.url);
+    fs.readFile(filePath, (err, data) => {
+      if (err) {
+        res.writeHead(404);
+        return res.end("Audio not found");
+      }
+      res.writeHead(200, { 'Content-Type': 'audio/mpeg' });
+      res.end(data);
+    });
+
   } else {
     res.writeHead(404);
-    res.end();
+    res.end("Not found");
   }
 });
 
