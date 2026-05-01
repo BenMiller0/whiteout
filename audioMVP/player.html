@@ -9,14 +9,26 @@
     let ws;
     let audio = {};
     let current = null;
+    let breathingPlaying = false;
 
     function init() {
       audio["PLAY_1"] = new Audio("audio/youwillfalltothepowerofthedarkside.mp3");
       audio["PLAY_2"] = new Audio("audio/0002.mp3");
-      audio["BREATH"] = new Audio("audio/0003.mp3");
+      audio["BREATH"] = new Audio("audio/breathing.mp3");
       audio["BREATH"].loop = true;
+      audio["BREATH"].volume = 1.0;
+      
+      // New audio files
+      audio["IHAVE_COME"] = new Audio("audio/ihavecomeforyou.mp3");
+      audio["IMPRESSIVE"] = new Audio("audio/mostimpressive.mp3");
+      audio["NO"] = new Audio("audio/no.mp3");
+      audio["YES"] = new Audio("audio/yes.mp3");
+      audio["WE_SHALL_SEE"] = new Audio("audio/weshallsee.mp3");
 
-      ws = new WebSocket(`wss://${location.host}`);
+      const protocol = location.protocol === 'https:' ? 'wss:' : 'ws:';
+      const wsUrl = `${protocol}//${location.host}`;
+      console.log('Connecting to WebSocket:', wsUrl);
+      ws = new WebSocket(wsUrl);
 
       ws.onopen = () => {
         document.getElementById("status").innerText = "Connected";
@@ -33,19 +45,58 @@
           current.pause();
           current.currentTime = 0;
         }
+        if (audio["BREATH"]) {
+          audio["BREATH"].pause();
+          audio["BREATH"].currentTime = 0;
+          breathingPlaying = false;
+        }
+        current = null;
+        return;
+      }
+
+      if (cmd === "BREATH") {
+        if (!breathingPlaying) {
+          audio["BREATH"].play().catch(() => {});
+          breathingPlaying = true;
+        }
+        current = audio["BREATH"];
         return;
       }
 
       if (audio[cmd]) {
-        if (current) {
+        // Start breathing if not already playing
+        if (!breathingPlaying) {
+          audio["BREATH"].play().catch(() => {});
+          breathingPlaying = true;
+        }
+        
+        // Lower breathing volume
+        audio["BREATH"].volume = 0.3;
+        
+        // Stop any previous non-breathing audio
+        if (current && current !== audio["BREATH"]) {
           current.pause();
           current.currentTime = 0;
         }
-
+        
+        // Play the new audio
         current = audio[cmd];
         current.play().catch(() => {});
+        
+        // Set up volume restoration when audio ends
+        current.onended = () => {
+          restoreBreathingVolume();
+          current = audio["BREATH"];
+        };
       }
     }
+
+    function restoreBreathingVolume() {
+      if (audio["BREATH"]) {
+        audio["BREATH"].volume = 1.0;
+      }
+    }
+
   </script>
 </body>
 </html>

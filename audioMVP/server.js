@@ -8,6 +8,11 @@ const PORT = process.env.PORT || 8080;
 // ---- HTTP server (serves controller page) ----
 const server = http.createServer((req, res) => {
   console.log("Request:", req.url);
+  
+  // Add CORS headers
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
 
   if (req.url === '/') {
     fs.readFile('./controller.html', (err, data) => {
@@ -41,6 +46,9 @@ const server = http.createServer((req, res) => {
       res.end(data);
     });
 
+  } else if (req.url === '/favicon.ico') {
+    res.writeHead(200, { 'Content-Type': 'image/x-icon' });
+    res.end('');
   } else {
     res.writeHead(404);
     res.end("Not found");
