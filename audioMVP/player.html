@@ -11,7 +11,6 @@
     let current = null;
 
     function init() {
-      // preload audio
       audio["PLAY_1"] = new Audio("audio/youwillfalltothepowerofthedarkside.mp3");
       audio["PLAY_2"] = new Audio("audio/0002.mp3");
       audio["BREATH"] = new Audio("audio/0003.mp3");
@@ -26,7 +25,6 @@
       ws.onmessage = (event) => {
         handle(event.data.trim());
       };
-      ws.onmessage = (event) => {
     }
 
     function handle(cmd) {
@@ -45,7 +43,7 @@
         }
 
         current = audio[cmd];
-        current.play();
+        current.play().catch(() => {});
       }
     }
   </script>

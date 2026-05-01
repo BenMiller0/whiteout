@@ -3,23 +3,36 @@
 <body>
   <h2>Vader Controller</h2>
 
-  <button onclick="send('PLAY_1')">youwillfalltothepowerofthedarkside.mp3</button>
-  <button onclick="send('PLAY_2')">Line 2</button>
+  <button onclick="send('PLAY_1')">Play Line 1</button>
+  <button onclick="send('PLAY_2')">Play Line 2</button>
   <button onclick="send('BREATH')">Breathing</button>
   <button onclick="send('STOP')">Stop</button>
 
   <p id="status">Connecting...</p>
 
   <script>
-    const ws = new WebSocket(`wss://${location.host}`);
+    let ws;
 
-    ws.onopen = () => {
-      document.getElementById("status").innerText = "Connected";
-    };
+    function connect() {
+      ws = new WebSocket(`wss://${location.host}`);
+
+      ws.onopen = () => {
+        document.getElementById("status").innerText = "Connected";
+      };
+
+      ws.onclose = () => {
+        document.getElementById("status").innerText = "Reconnecting...";
+        setTimeout(connect, 2000);
+      };
+    }
 
     function send(cmd) {
-      ws.send(cmd);
+      if (ws && ws.readyState === WebSocket.OPEN) {
+        ws.send(cmd);
+      }
     }
+
+    connect();
   </script>
 </body>
 </html>
