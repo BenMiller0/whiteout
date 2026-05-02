@@ -399,13 +399,48 @@ let connectionHealth = {
 
 // Command cooldown system
 let globalCooldown = 0; // Global cooldown timestamp
-let globalCooldownDuration = 2000; // 2 seconds for all commands
+let globalCooldownDuration = 2000; // Default 2 seconds, will be updated based on audio duration
 let activeProgressBar = null; // Track current progress bar
 
 // Command retry system
 let commandRetries = new Map(); // Track retry attempts
 let maxRetries = 3; // Maximum retry attempts per command
 let retryDelay = 1000; // 1 second between retries
+
+// Audio duration mapping
+let audioDurations = {};
+
+// Load audio files to get durations
+function loadAudioDurations() {
+  const audioFiles = {
+    'BREATH': 'audio/breathing.mp3',
+    'PLAY_1': 'audio/youwillfalltothepowerofthedarkside.mp3',
+    'PLAY_2': 'audio/0002.mp3',
+    'IHAVE_COME': 'audio/ihavecomeforyou.mp3',
+    'IMPRESSIVE': 'audio/mostimpressive.mp3',
+    'NO': 'audio/no.mp3',
+    'YES': 'audio/yes.mp3',
+    'WE_SHALL_SEE': 'audio/weshallsee.mp3'
+  };
+  
+  for (const [cmd, path] of Object.entries(audioFiles)) {
+    const tempAudio = new Audio(path);
+    
+    tempAudio.addEventListener('loadedmetadata', () => {
+      audioDurations[cmd] = tempAudio.duration * 1000; // Convert to milliseconds
+      console.log(`Audio duration for ${cmd}:`, audioDurations[cmd] + 'ms');
+    });
+    
+    tempAudio.addEventListener('error', () => {
+      console.error(`Failed to load audio for duration: ${cmd}`);
+      // Set default duration if loading fails
+      audioDurations[cmd] = 2000;
+    });
+  }
+  
+  // Set default duration for STOP command
+  audioDurations['STOP'] = 500;
+}
 
 function connect(){
   if (ws && (ws.readyState === WebSocket.CONNECTING || ws.readyState === WebSocket.OPEN)) {
@@ -717,8 +752,10 @@ function fireCmd(btn,cmd){
   send(cmd);
   document.getElementById('lastCmd').textContent=`LAST CMD: ${cmd}`;
   
-  // Set global cooldown
-  globalCooldown = now + globalCooldownDuration;
+  // Set global cooldown based on audio duration
+  const cooldownTime = audioDurations[cmd] || globalCooldownDuration;
+  globalCooldown = now + cooldownTime;
+  console.log(`Cooldown set to ${cooldownTime}ms for command ${cmd}`);
   
   // Visual feedback
   btn.classList.remove('ripple');
@@ -766,7 +803,7 @@ function fireCmd(btn,cmd){
   const startTime = Date.now();
   const updateProgress = () => {
     const elapsed = Date.now() - startTime;
-    const progress = Math.min(elapsed / globalCooldownDuration, 1);
+    const progress = Math.min(elapsed / cooldownTime, 1);
     
     progressFill.style.width = (progress * 100) + '%';
     
@@ -816,6 +853,8 @@ function clearErrorIndicator() {
   }
 }
 
+// Load audio durations and connect
+loadAudioDurations();
 connect();
 </script>
 </body>

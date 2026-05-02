@@ -463,6 +463,7 @@
     }
 
     function handle(cmd) {
+      console.log('Received command:', cmd);
       updateCommandDisplay(cmd);
       
       if (cmd === "STOP") {
@@ -482,7 +483,15 @@
 
       if (cmd === "BREATH") {
         if (!breathingPlaying) {
-          audio["BREATH"].play().catch(() => {});
+          if (!audio["BREATH"]) {
+            console.error('BREATH audio not loaded');
+            updateCommandDisplay('AUDIO NOT LOADED');
+            return;
+          }
+          audio["BREATH"].play().catch((error) => {
+            console.error('Failed to play breathing:', error);
+            updateCommandDisplay('PLAYBACK FAILED');
+          });
           breathingPlaying = true;
         }
         current = audio["BREATH"];
@@ -504,23 +513,77 @@
         }
         
         // Play the new audio
-        current = audio[cmd];
-        current.play().catch(() => {});
+        const audioElement = audio[cmd];
+        
+        // Reset audio element to prevent corruption from repeated plays
+        audioElement.pause();
+        audioElement.currentTime = 0;
+        
+        // Check if audio is already playing this specific clip
+        if (current === audioElement && !audioElement.paused) {
+          console.log('Audio already playing:', cmd, '- skipping duplicate play');
+          return;
+        }
+        
+        console.log('Attempting to play:', cmd, 'Audio ready:', audioElement.readyState, 'Paused:', audioElement.paused);
+        
+        audioElement.play().catch((error) => {
+          console.error('Failed to play audio:', cmd, error);
+          
+          // Try to recover by recreating the audio element
+          console.log('Attempting to recover by recreating audio element');
+          const originalSrc = audioElement.src;
+          audio[cmd] = new Audio(originalSrc);
+          audio[cmd].loop = (cmd === 'BREATH');
+          
+          setTimeout(() => {
+            audio[cmd].play().catch((retryError) => {
+              console.error('Audio recovery failed:', cmd, retryError);
+              updateCommandDisplay('PLAYBACK FAILED');
+              animateVisualizer(false);
+            });
+          }, 100);
+          
+          updateCommandDisplay('RECOVERING...');
+          animateVisualizer(false);
+        });
+        
+        current = audioElement;
         animateVisualizer(true);
         
         // Set up volume restoration when audio ends
-        current.onended = () => {
+        audioElement.onended = () => {
+          console.log('Audio ended:', cmd);
           restoreBreathingVolume();
           
           // Ensure breathing continues playing if it was already playing
           if (breathingPlaying && audio["BREATH"]) {
             if (audio["BREATH"].paused) {
-              audio["BREATH"].play().catch(() => {});
+              audio["BREATH"].play().catch((error) => {
+                console.error('Failed to resume breathing:', error);
+              });
             }
           }
           
           current = audio["BREATH"];
         };
+        
+        // Add error handler for audio
+        audioElement.onerror = (error) => {
+          console.error('Audio error:', cmd, error);
+          updateCommandDisplay('AUDIO ERROR');
+          animateVisualizer(false);
+          
+          // Try to recover by recreating
+          const originalSrc = audioElement.src;
+          audio[cmd] = new Audio(originalSrc);
+          if (cmd === 'BREATH') {
+            audio[cmd].loop = true;
+          }
+        };
+      } else {
+        console.error('Audio not found for command:', cmd);
+        updateCommandDisplay('AUDIO NOT FOUND');
       }
     }
 
