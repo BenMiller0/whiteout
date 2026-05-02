@@ -425,9 +425,9 @@ function connect(){
     const t=document.getElementById('status');
     
     if (!isManualClose && reconnectAttempts < maxReconnectAttempts) {
-      const delay = Math.min(baseReconnectDelay * Math.pow(2, reconnectAttempts), 30000);
-      t.textContent=`LINK LOST — RETRY IN ${Math.round(delay/1000)}S...`; t.className='status-text disconnected';
       reconnectAttempts++;
+      const delay = 2000;
+      t.textContent='LINK LOST — RETRY...'; t.className='status-text disconnected';
       setTimeout(connect, delay);
     } else if (reconnectAttempts >= maxReconnectAttempts) {
       t.textContent='MAX RECONNECT ATTEMPTS REACHED'; t.className='status-text disconnected';
