@@ -312,6 +312,12 @@
           <button class="btn btn-cmd btn-wide" onclick="fireCmd(this,'IHAVE_COME')">I HAVE COME FOR YOU</button>
           <button class="btn btn-cmd btn-wide" onclick="fireCmd(this,'IMPRESSIVE')">MOST IMPRESSIVE</button>
           <button class="btn btn-cmd btn-wide" onclick="fireCmd(this,'WE_SHALL_SEE')">WE SHALL SEE</button>
+          <button class="btn btn-cmd btn-wide" onclick="fireCmd(this,'CONVENIENT')">HOW CONVENIENT</button>
+          <button class="btn btn-cmd btn-wide" onclick="fireCmd(this,'DELUSION')">IT IS DELUSION</button>
+          <button class="btn btn-cmd btn-wide" onclick="fireCmd(this,'WEAK')">SO WEAK</button>
+          <button class="btn btn-cmd btn-wide" onclick="fireCmd(this,'BURN')">THIS ARCHIVE WILL BURN</button>
+          <button class="btn btn-cmd btn-wide" onclick="fireCmd(this,'ESCAPE')">YOU SHALL NOT ESCAPE</button>
+          <button class="btn btn-cmd btn-wide" onclick="fireCmd(this,'WASTE_TIME')">YOU WASTE TIME</button>
         </div>
       </div>
     </div>
@@ -420,7 +426,13 @@ function loadAudioDurations() {
     'IMPRESSIVE': 'audio/mostimpressive.mp3',
     'NO': 'audio/no.mp3',
     'YES': 'audio/yes.mp3',
-    'WE_SHALL_SEE': 'audio/weshallsee.mp3'
+    'WE_SHALL_SEE': 'audio/weshallsee.mp3',
+    'CONVENIENT': 'audio/howconvenient.mp3',
+    'DELUSION': 'audio/itisdelusiontothinkyouractionshavehadanyconsequence.mp3',
+    'WEAK': 'audio/soweak.mp3',
+    'BURN': 'audio/thisarchivewillburn!.mp3',
+    'ESCAPE': 'audio/youshallnotescapemethistime.mp3',
+    'WASTE_TIME': 'audio/youwastetime.mp3'
   };
   
   for (const [cmd, path] of Object.entries(audioFiles)) {
