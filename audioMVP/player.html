@@ -482,20 +482,89 @@
       }
 
       if (cmd === "BREATH") {
-        if (!breathingPlaying) {
-          if (!audio["BREATH"]) {
-            console.error('BREATH audio not loaded');
-            updateCommandDisplay('AUDIO NOT LOADED');
-            return;
-          }
-          audio["BREATH"].play().catch((error) => {
-            console.error('Failed to play breathing:', error);
-            updateCommandDisplay('PLAYBACK FAILED');
-          });
-          breathingPlaying = true;
+        const breathAudio = audio["BREATH"];
+        
+        if (!breathAudio) {
+          console.error('BREATH audio not loaded');
+          updateCommandDisplay('AUDIO NOT LOADED');
+          return;
         }
-        current = audio["BREATH"];
+        
+        // Reset breathing audio to prevent corruption
+        breathAudio.pause();
+        breathAudio.currentTime = 0;
+        
+        if (!breathingPlaying) {
+          console.log('Starting breathing audio');
+          
+          breathAudio.play().catch((error) => {
+            console.error('Failed to play breathing:', error);
+            
+            // Try to recover by recreating the breathing audio
+            console.log('Attempting to recover breathing audio');
+            const originalSrc = breathAudio.src;
+            audio["BREATH"] = new Audio(originalSrc);
+            audio["BREATH"].loop = true;
+            audio["BREATH"].volume = 1.0;
+            
+            setTimeout(() => {
+              audio["BREATH"].play().catch((retryError) => {
+                console.error('Breathing recovery failed:', retryError);
+                updateCommandDisplay('PLAYBACK FAILED');
+                animateVisualizer(false);
+              });
+            }, 100);
+            
+            updateCommandDisplay('RECOVERING...');
+            animateVisualizer(false);
+          });
+          
+          breathingPlaying = true;
+        } else {
+          // Breathing is already playing, just ensure it's not paused
+          if (breathAudio.paused) {
+            console.log('Resuming paused breathing');
+            breathAudio.play().catch((error) => {
+              console.error('Failed to resume breathing:', error);
+              // Try recovery
+              const originalSrc = breathAudio.src;
+              audio["BREATH"] = new Audio(originalSrc);
+              audio["BREATH"].loop = true;
+              audio["BREATH"].volume = 1.0;
+              
+              setTimeout(() => {
+                audio["BREATH"].play().catch((retryError) => {
+                  console.error('Breathing resume recovery failed:', retryError);
+                });
+              }, 100);
+            });
+          }
+        }
+        
+        current = breathAudio;
         animateVisualizer(true);
+        
+        // Add error handler for breathing
+        breathAudio.onerror = (error) => {
+          console.error('Breathing audio error:', error);
+          updateCommandDisplay('AUDIO ERROR');
+          animateVisualizer(false);
+          
+          // Try to recover
+          const originalSrc = breathAudio.src;
+          audio["BREATH"] = new Audio(originalSrc);
+          audio["BREATH"].loop = true;
+          audio["BREATH"].volume = 1.0;
+          
+          if (breathingPlaying) {
+            setTimeout(() => {
+              audio["BREATH"].play().catch((retryError) => {
+                console.error('Breathing error recovery failed:', retryError);
+              });
+            }, 100);
+          }
+        };
+        
         return;
       }
 
