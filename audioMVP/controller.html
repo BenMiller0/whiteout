@@ -766,7 +766,7 @@ function fireCmd(btn,cmd){
   
   // Set global cooldown based on audio duration + 1 second buffer
   const baseDuration = audioDurations[cmd] || globalCooldownDuration;
-  const cooldownTime = baseDuration + 1000; // Add 1 second buffer
+  const cooldownTime = baseDuration + 500; // Add .5 second buffer
   globalCooldown = now + cooldownTime;
   console.log(`Cooldown set to ${cooldownTime}ms (${baseDuration}ms audio + 1000ms buffer) for command ${cmd}`);
   

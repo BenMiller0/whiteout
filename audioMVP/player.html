@@ -1,1046 +1,636 @@
 <!DOCTYPE html>
-
 <html lang="en">
-
 <head>
-
   <meta charset="UTF-8">
-
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-
   <title>VADER AUDIO RECEIVER</title>
-
   <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Share+Tech+Mono&display=swap" rel="stylesheet">
-
   <style>
-
     :root {
-
       --red: #cc0000;
-
       --red-glow: #ff2222;
-
       --red-dim: #440000;
-
       --amber: #ff8800;
-
       --amber-dim: #331a00;
-
       --green: #00ff88;
-
       --green-dim: #003320;
-
       --panel: #0a0a0a;
-
       --panel-mid: #111111;
-
       --panel-light: #1a1a1a;
-
       --border: #2a2a2a;
-
       --border-bright: #444444;
-
       --text-main: #ddddcc;
-
       --text-dim: #666655;
-
     }
 
-
-
-    * { 
-
-      margin: 0; 
-
-      padding: 0; 
-
-      box-sizing: border-box; 
-
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
       -webkit-tap-highlight-color: transparent;
-
     }
-
-
 
     body {
-
       background: #050508;
-
       font-family: 'Share Tech Mono', monospace;
-
       color: var(--text-main);
-
       min-height: 100vh;
-
       overflow: hidden;
-
       position: relative;
-
       display: flex;
-
       flex-direction: column;
-
     }
-
-
 
     body::before {
-
       content: '';
-
       position: fixed;
-
       inset: 0;
-
       background: repeating-linear-gradient(
-
         0deg,
-
         rgba(0,0,0,0.12) 0px,
-
         rgba(0,0,0,0.12) 1px,
-
         transparent 1px,
-
         transparent 3px
-
       );
-
       pointer-events: none;
-
       z-index: 999;
-
     }
-
-
 
     .header {
-
       background: var(--panel);
-
       border-bottom: 2px solid var(--red);
-
       padding: 20px;
-
       text-align: center;
-
       position: relative;
-
       z-index: 1;
-
     }
-
-
 
     .header-title {
-
       font-family: 'Orbitron', sans-serif;
-
       font-weight: 900;
-
       font-size: 1.5rem;
-
       letter-spacing: 0.3em;
-
       color: var(--red-glow);
-
       text-shadow: 0 0 20px var(--red), 0 0 40px rgba(200,0,0,0.3);
-
       margin-bottom: 8px;
-
     }
-
-
 
     .subtitle {
-
       font-size: 0.8rem;
-
       color: var(--text-dim);
-
       letter-spacing: 0.1em;
-
     }
-
-
 
     .main-content {
-
       flex: 1;
-
       display: flex;
-
       flex-direction: column;
-
       align-items: center;
-
       justify-content: center;
-
       padding: 20px;
-
       position: relative;
-
       z-index: 1;
-
     }
-
-
 
     .status-card {
-
       background: var(--panel-mid);
-
       border: 1px solid var(--border);
-
       border-radius: 12px;
-
       padding: 30px;
-
       width: 100%;
-
       max-width: 400px;
-
       text-align: center;
-
       position: relative;
-
       overflow: hidden;
-
     }
-
-
 
     .status-card::before {
-
       content: '';
-
       position: absolute;
-
       top: 0;
-
       left: 0;
-
       right: 0;
-
       height: 2px;
-
       background: linear-gradient(90deg, transparent, var(--red), var(--red), transparent);
-
       animation: scan 3s linear infinite;
-
     }
-
-
 
     @keyframes scan {
-
       0% { transform: translateX(-100%); }
-
       100% { transform: translateX(100%); }
-
     }
-
-
 
     .connection-status {
-
       display: flex;
-
       align-items: center;
-
       justify-content: center;
-
       gap: 12px;
-
       margin-bottom: 20px;
-
     }
-
-
 
     .status-dot {
-
       width: 12px;
-
       height: 12px;
-
       border-radius: 50%;
-
       background: #333;
-
       transition: all 0.3s;
-
     }
-
-    .status-dot.connected { 
-
-      background: var(--green); 
-
-      box-shadow: 0 0 15px var(--green); 
-
-      animation: pulse 2s ease-in-out infinite; 
-
+    .status-dot.connected {
+      background: var(--green);
+      box-shadow: 0 0 15px var(--green);
+      animation: pulse 2s ease-in-out infinite;
     }
-
-    .status-dot.disconnected { 
-
-      background: var(--red); 
-
-      box-shadow: 0 0 15px var(--red); 
-
-      animation: blink 1s infinite; 
-
+    .status-dot.disconnected {
+      background: var(--red);
+      box-shadow: 0 0 15px var(--red);
+      animation: blink 1s infinite;
     }
-
     @keyframes pulse { 0%,100%{opacity:0.6} 50%{opacity:1} }
-
     @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.3} }
 
-
-
     .status-text {
-
       font-size: 1rem;
-
       font-weight: 700;
-
       letter-spacing: 0.1em;
-
     }
-
     .status-text.connected { color: var(--green); }
-
     .status-text.disconnected { color: var(--red-glow); }
 
-
-
     .init-button {
-
       background: linear-gradient(135deg, var(--panel-light), var(--panel-mid));
-
       border: 2px solid var(--border-bright);
-
       color: var(--text-main);
-
       padding: 20px 40px;
-
       font-family: 'Orbitron', sans-serif;
-
       font-weight: 700;
-
       font-size: 1.1rem;
-
       letter-spacing: 0.15em;
-
       border-radius: 8px;
-
       cursor: pointer;
-
       transition: all 0.3s;
-
       text-transform: uppercase;
-
       position: relative;
-
       overflow: hidden;
-
     }
-
-
 
     .init-button::before {
-
       content: '';
-
       position: absolute;
-
       top: 0;
-
       left: -100%;
-
       width: 100%;
-
       height: 100%;
-
       background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
-
       transition: left 0.5s;
-
     }
 
-
-
-    .init-button:hover::before {
-
-      left: 100%;
-
-    }
-
-
-
+    .init-button:hover::before { left: 100%; }
     .init-button:hover {
-
       border-color: var(--amber);
-
       color: var(--amber);
-
       box-shadow: 0 0 20px rgba(255,136,0,0.3);
-
       transform: translateY(-2px);
-
     }
-
-
-
-    .init-button:active {
-
-      transform: translateY(0);
-
-    }
-
-
+    .init-button:active { transform: translateY(0); }
 
     .audio-visualizer {
-
       margin-top: 30px;
-
       height: 60px;
-
       display: flex;
-
       align-items: center;
-
       justify-content: center;
-
       gap: 4px;
-
     }
-
-
 
     .audio-bar {
-
       width: 4px;
-
       background: linear-gradient(to top, var(--red-glow), var(--amber));
-
       border-radius: 2px;
-
-      transition: height 0.1s;
-
+      height: 20%;
       opacity: 0.3;
-
+      transition: height 0.1s;
     }
-
-
 
     .audio-bar.active {
-
       opacity: 1;
-
       animation: dance 0.5s ease-in-out infinite alternate;
-
     }
-
-
 
     @keyframes dance {
-
-      0% { height: 20%; }
-
-      100% { height: 80%; }
-
+      0%  { height: 20%; }
+      100%{ height: 80%; }
     }
-
-
 
     .command-display {
-
       margin-top: 20px;
-
       padding: 15px;
-
       background: rgba(0,0,0,0.3);
-
       border: 1px solid var(--border);
-
       border-radius: 6px;
-
       font-family: 'Share Tech Mono', monospace;
-
       font-size: 0.9rem;
-
       color: var(--amber);
-
       min-height: 50px;
-
       display: flex;
-
       align-items: center;
-
       justify-content: center;
-
       letter-spacing: 0.1em;
-
     }
-
-
 
     .footer {
-
       background: var(--panel);
-
       border-top: 1px solid var(--border);
-
       padding: 15px;
-
       text-align: center;
-
       font-size: 0.7rem;
-
       color: var(--text-dim);
-
       position: relative;
-
       z-index: 1;
-
     }
-
-
-
-    /* Mobile optimizations */
 
     @media (max-width: 480px) {
-
-      .header-title {
-
-        font-size: 1.2rem;
-
-      }
-
-      
-
-      .status-card {
-
-        padding: 20px;
-
-        margin: 10px;
-
-      }
-
-      
-
-      .init-button {
-
-        padding: 15px 30px;
-
-        font-size: 1rem;
-
-      }
-
+      .header-title { font-size: 1.2rem; }
+      .status-card { padding: 20px; margin: 10px; }
+      .init-button { padding: 15px 30px; font-size: 1rem; }
     }
-
-
-
-    /* iPhone notch and safe area handling */
 
     @supports (padding: max(0px)) {
-
-      .header {
-
-        padding-top: max(20px, env(safe-area-inset-top));
-
-      }
-
-      
-
-      .footer {
-
-        padding-bottom: max(15px, env(safe-area-inset-bottom));
-
-      }
-
+      .header { padding-top: max(20px, env(safe-area-inset-top)); }
+      .footer { padding-bottom: max(15px, env(safe-area-inset-bottom)); }
     }
-
   </style>
-
 </head>
-
 <body>
 
   <div class="header">
-
     <div class="header-title">VADER AUDIO RECEIVER</div>
-
     <div class="subtitle">IMPERIAL AUDIO TRANSMISSION SYSTEM</div>
-
   </div>
-
-
 
   <div class="main-content">
-
     <div class="status-card">
-
       <div class="connection-status">
-
         <div class="status-dot disconnected" id="statusDot"></div>
-
         <div class="status-text disconnected" id="status">AWAITING CONNECTION</div>
-
       </div>
-
-      
 
       <button class="init-button" id="initButton" onclick="init()">
-
         <span>INITIATE AUDIO SYSTEM</span>
-
       </button>
 
-      
-
       <div class="audio-visualizer" id="visualizer">
-
         <div class="audio-bar"></div>
-
         <div class="audio-bar"></div>
-
         <div class="audio-bar"></div>
-
         <div class="audio-bar"></div>
-
         <div class="audio-bar"></div>
-
         <div class="audio-bar"></div>
-
         <div class="audio-bar"></div>
-
         <div class="audio-bar"></div>
-
         <div class="audio-bar"></div>
-
         <div class="audio-bar"></div>
-
         <div class="audio-bar"></div>
-
         <div class="audio-bar"></div>
-
       </div>
-
-      
 
       <div class="command-display" id="commandDisplay">
-
         STANDBY MODE
-
       </div>
-
     </div>
-
   </div>
-
-
 
   <div class="footer">
-
-    <div>IMPERIAL AUDIO RECEIVER v2.0 | TRANSMISSION ACTIVE</div>
-
+    <div>IMPERIAL AUDIO RECEIVER v2.1 | TRANSMISSION ACTIVE</div>
   </div>
 
-
-
 <script>
+  let ws;
+  let audio = {};
+  let current = null;
+  let breathingPlaying = false;
+  let visualizerBars = [];
+  let reconnectAttempts = 0;
+  const MAX_RECONNECT = 10;
+  let pendingCmd = null;
+  let wakeLock = null;
+  let heartbeatTimer = null;
 
-    let ws;
+  const BREATH_VOL_NORMAL = 0.4;
+  const BREATH_VOL_DUCKED = 0.25;
 
-    let audio = {};
+  // ── VISUALIZER ──────────────────────────────────────────────────────────────
+  function initVisualizer() {
+    visualizerBars = document.querySelectorAll('.audio-bar');
+  }
 
-    let current = null;
-
-    let breathingPlaying = false;
-
-    let visualizerBars = [];
-
-    let reconnectAttempts = 0;
-
-    let maxReconnectAttempts = 10;
-
-
-
-    // Initialize visualizer bars
-
-    function initVisualizer() {
-
-      visualizerBars = document.querySelectorAll('.audio-bar');
-
-    }
-
-
-
-    // Animate visualizer based on audio state
-
-    function animateVisualizer(isActive) {
-
-      visualizerBars.forEach((bar, index) => {
-
-        if (isActive) {
-
-          bar.classList.add('active');
-
-          // Stagger animation for each bar
-
-          bar.style.animationDelay = `${index * 0.05}s`;
-
-        } else {
-
-          bar.classList.remove('active');
-
-        }
-
-      });
-
-    }
-
-
-
-    // Update command display
-
-    function updateCommandDisplay(command) {
-
-      const display = document.getElementById('commandDisplay');
-
-      const commandNames = {
-
-        'BREATH': 'RESPIRATION CYCLE ACTIVE',
-
-        'STOP': 'TRANSMISSION TERMINATED',
-
-        'PLAY_1': 'YOU WILL FALL TO THE DARK SIDE',
-
-        'IHAVE_COME': 'I HAVE COME FOR YOU',
-
-        'IMPRESSIVE': 'MOST IMPRESSIVE',
-
-        'WE_SHALL_SEE': 'WE SHALL SEE',
-
-        'YES': 'AFFIRMATIVE',
-
-        'NO': 'NEGATIVE',
-        
-        'CONVENIENT': 'HOW CONVENIENT',
-        
-        'DELUSION': 'IT IS DELUSION',
-        
-        'WEAK': 'SO WEAK',
-        
-        'BURN': 'THIS ARCHIVE WILL BURN',
-        
-        'ESCAPE': 'YOU SHALL NOT ESCAPE',
-        
-        'WASTE_TIME': 'YOU WASTE TIME'
-
-      };
-
-      
-
-      display.textContent = commandNames[command] || `COMMAND: ${command}`;
-
-      display.style.animation = 'pulse 0.5s';
-
-      setTimeout(() => {
-
-        display.style.animation = '';
-
-      }, 500);
-
-    }
-
-
-
-    // Update connection status
-
-    function updateConnectionStatus(connected, message) {
-
-      const statusDot = document.getElementById('statusDot');
-
-      const statusText = document.getElementById('status');
-
-      const initButton = document.getElementById('initButton');
-
-      
-
-      if (connected) {
-
-        statusDot.className = 'status-dot connected';
-
-        statusText.className = 'status-text connected';
-
-        statusText.textContent = message || 'TRANSMISSION ACTIVE';
-
-        initButton.style.display = 'none';
-
+  function animateVisualizer(isActive) {
+    visualizerBars.forEach((bar, i) => {
+      if (isActive) {
+        bar.classList.add('active');
+        bar.style.animationDelay = `${i * 0.05}s`;
       } else {
-
-        statusDot.className = 'status-dot disconnected';
-
-        statusText.className = 'status-text disconnected';
-
-        statusText.textContent = message || 'CONNECTION LOST';
-
-        initButton.style.display = 'block';
-
+        bar.classList.remove('active');
       }
+    });
+  }
 
+  function updateCommandDisplay(text) {
+    const names = {
+      BREATH:      'RESPIRATION CYCLE ACTIVE',
+      STOP:        'TRANSMISSION TERMINATED',
+      PLAY_1:      'YOU WILL FALL TO THE DARK SIDE',
+      IHAVE_COME:  'I HAVE COME FOR YOU',
+      IMPRESSIVE:  'MOST IMPRESSIVE',
+      WE_SHALL_SEE:'WE SHALL SEE',
+      YES:         'AFFIRMATIVE',
+      NO:          'NEGATIVE',
+      CONVENIENT:  'HOW CONVENIENT',
+      DELUSION:    'IT IS DELUSION',
+      WEAK:        'SO WEAK',
+      BURN:        'THIS ARCHIVE WILL BURN',
+      ESCAPE:      'YOU SHALL NOT ESCAPE',
+      WASTE_TIME:  'YOU WASTE TIME',
+    };
+    document.getElementById('commandDisplay').textContent = names[text] || text;
+  }
+
+  function updateConnectionStatus(connected, message) {
+    const dot  = document.getElementById('statusDot');
+    const text = document.getElementById('status');
+    const btn  = document.getElementById('initButton');
+    if (connected) {
+      dot.className  = 'status-dot connected';
+      text.className = 'status-text connected';
+      text.textContent = message || 'TRANSMISSION ACTIVE';
+      btn.style.display = 'none';
+    } else {
+      dot.className  = 'status-dot disconnected';
+      text.className = 'status-text disconnected';
+      text.textContent = message || 'CONNECTION LOST';
+      btn.style.display = 'block';
     }
+  }
 
+  // ── AUDIO ───────────────────────────────────────────────────────────────────
 
-
-    // Global audio cleanup function
-    function stopAllAudio() {
-      // Stop all audio elements
-      for (const [cmd, audioElement] of Object.entries(audio)) {
-        if (audioElement) {
-          audioElement.pause();
-          audioElement.currentTime = 0;
-        }
-      }
-      current = null;
+  function teardownAudio() {
+    for (const el of Object.values(audio)) {
+      if (!el) continue;
+      el.pause();
+      el.onended = null;
+      el.onerror = null;
+      el.src = '';
+      el.load();
     }
+    audio = {};
+    current = null;
+  }
 
-    // Load audio files (only load once)
-function loadAudioFiles() {
-  audio["PLAY_1"] = new Audio("audio/youwillfalltothepowerofthedarkside.mp3");
-  audio["PLAY_2"] = new Audio("audio/0002.mp3");
-  audio["BREATH"] = new Audio("audio/breathing.mp3");
-  audio["BREATH"].loop = true;
-  audio["BREATH"].volume = 0.3;
-  audio["IHAVE_COME"] = new Audio("audio/ihavecomeforyou.mp3");
-  audio["IMPRESSIVE"] = new Audio("audio/mostimpressive.mp3");
-  audio["NO"] = new Audio("audio/no.mp3");
-  audio["YES"] = new Audio("audio/yes.mp3");
-  audio["WE_SHALL_SEE"] = new Audio("audio/weshallsee.mp3");
-  // New audio files
-  audio["CONVENIENT"] = new Audio("audio/howconvenient.mp3");
-  audio["DELUSION"] = new Audio("audio/itisdelusiontothinkyouractionshavehadanyconsequence.mp3");
-  audio["WEAK"] = new Audio("audio/soweak.mp3");
-  audio["BURN"] = new Audio("audio/thisarchivewillburn!.mp3");
-  audio["ESCAPE"] = new Audio("audio/youshallnotescapemethistime.mp3");
-  audio["WASTE_TIME"] = new Audio("audio/youwastetime.mp3");
-}
+  function loadAudioFiles() {
+    teardownAudio();
 
-function init() {
-        // Stop all audio before reconnecting
-        stopAllAudio();
-        
-        updateCommandDisplay('INITIALIZING...');
+    const map = {
+      PLAY_1:      'audio/youwillfalltothepowerofthedarkside.mp3',
+      PLAY_2:      'audio/0002.mp3',
+      BREATH:      'audio/breathing.mp3',
+      IHAVE_COME:  'audio/ihavecomeforyou.mp3',
+      IMPRESSIVE:  'audio/mostimpressive.mp3',
+      NO:          'audio/no.mp3',
+      YES:         'audio/yes.mp3',
+      WE_SHALL_SEE:'audio/weshallsee.mp3',
+      CONVENIENT:  'audio/howconvenient.mp3',
+      DELUSION:    'audio/itisdelusiontothinkyouractionshavehadanyconsequence.mp3',
+      WEAK:        'audio/soweak.mp3',
+      BURN:        'audio/thisarchivewillburn!.mp3',
+      ESCAPE:      'audio/youshallnotescapemethistime.mp3',
+      WASTE_TIME:  'audio/youwastetime.mp3',
+    };
 
-      // Load audio files if not already loaded
-      if (Object.keys(audio).length === 0) {
-        loadAudioFiles();
+    for (const [cmd, src] of Object.entries(map)) {
+      const el = new Audio(src);
+      if (cmd === 'BREATH') {
+        el.loop   = true;
+        el.volume = BREATH_VOL_NORMAL;
       }
+      audio[cmd] = el;
+    }
+  }
 
-      // Setup WebSocket connection
+  // Full stop — kills everything including breathing
+  function stopAllAudio() {
+    for (const el of Object.values(audio)) {
+      if (!el) continue;
+      el.pause();
+      el.currentTime = 0;
+      el.onended = null;
+    }
+    current = null;
+    breathingPlaying = false;
+    animateVisualizer(false);
+  }
 
-      const protocol = location.protocol === 'https:' ? 'wss:' : 'ws:';
+  // Stops only the current voice line — never touches BREATH
+  function stopVoiceLine() {
+    for (const [key, el] of Object.entries(audio)) {
+      if (key === 'BREATH' || !el) continue;
+      el.pause();
+      el.currentTime = 0;
+      el.onended = null;
+    }
+    if (current && current !== audio['BREATH']) current = null;
+  }
 
-      const wsUrl = `${protocol}//${location.host}`;
-
-      console.log('Connecting to WebSocket:', wsUrl);
-
-      
-
-      ws = new WebSocket(wsUrl);
-
-
-
-      ws.onopen = () => {
-
-        console.log('WebSocket connected');
-
-        reconnectAttempts = 0;
-
-        updateConnectionStatus(true, 'TRANSMISSION ACTIVE');
-
-        updateCommandDisplay('SYSTEM READY');
-
-      };
-
-
-
-      ws.onmessage = (event) => {
-
-        const message = event.data.trim();
-
-        if (message === 'pong') {
-
-          return;
-
-        }
-
-        handle(message);
-
-      };
-
-
-
-      ws.onclose = (event) => {
-
-        console.log('WebSocket disconnected, code:', event.code, 'reason:', event.reason);
-
-        updateConnectionStatus(false, 'RECONNECTING...');
-
-        
-
-        // Auto-reconnect
-
-        if (reconnectAttempts < maxReconnectAttempts) {
-
-          reconnectAttempts++;
-
-          setTimeout(() => {
-
-            if (!ws || ws.readyState === WebSocket.CLOSED) {
-
-              init();
-
+  // Retries play() up to maxRetries times with a short delay between attempts
+  function playWithRetry(el, maxRetries = 3, delayMs = 300) {
+    return new Promise((resolve, reject) => {
+      let attempts = 0;
+      function attempt() {
+        attempts++;
+        el.play()
+          .then(resolve)
+          .catch(err => {
+            console.warn(`play() attempt ${attempts} failed:`, err.name, err.message);
+            if (attempts < maxRetries) {
+              setTimeout(attempt, delayMs);
+            } else {
+              reject(err);
             }
+          });
+      }
+      attempt();
+    });
+  }
 
-          }, 2000);
+  function handle(cmd) {
+    console.log('Command received:', cmd);
+    pendingCmd = cmd;
+    updateCommandDisplay(cmd);
 
-        } else {
-
-          updateConnectionStatus(false, 'MAX RECONNECT ATTEMPTS REACHED');
-
-        }
-
-      };
-
-
-
-      ws.onerror = (error) => {
-
-        console.error('WebSocket error:', error);
-
-        updateConnectionStatus(false, 'CONNECTION ERROR');
-
-      };
-
-
-
-      // Start heartbeat
-
-      setInterval(() => {
-
-        if (ws && ws.readyState === WebSocket.OPEN) {
-
-          ws.send('ping');
-
-        }
-
-      }, 30000);
-
-      
-
-      // Initialize visualizer
-
-      initVisualizer();
-
+    // ── STOP ──
+    if (cmd === 'STOP') {
+      stopAllAudio();
+      pendingCmd = null;
+      return;
     }
 
-
-
-    function handle(cmd) {
-
-      console.log('Received command:', cmd);
-
-      updateCommandDisplay(cmd);
-
-      
-
-      if (cmd === "STOP") {
-        stopAllAudio();
-        breathingPlaying = false;
-        animateVisualizer(false);
-        return;
-      }
-
-      if (cmd === "BREATH") {
-        stopAllAudio();
-        
-        const breathAudio = audio["BREATH"];
-        if (!breathAudio) {
-          console.error('BREATH audio not loaded');
-          updateCommandDisplay('AUDIO NOT LOADED');
-          return;
-        }
-        
-        breathAudio.volume = 0.3;
-        breathAudio.loop = true;
-        breathAudio.play().catch((error) => {
-          console.error('Failed to play breathing:', error);
-          updateCommandDisplay('PLAYBACK FAILED');
+    // ── BREATHING ──
+    if (cmd === 'BREATH') {
+      stopVoiceLine();
+      const el = audio['BREATH'];
+      if (!el) { updateCommandDisplay('AUDIO NOT LOADED'); return; }
+      el.volume      = BREATH_VOL_NORMAL;
+      el.loop        = true;
+      el.currentTime = 0;
+      playWithRetry(el)
+        .then(() => {
+          breathingPlaying = true;
+          current = el;
+          animateVisualizer(true);
+          requestWakeLock();
+        })
+        .catch(err => {
+          console.error('BREATH play failed:', err);
+          updateCommandDisplay('PLAYBACK FAILED — TAP TO RETRY');
         });
-        
-        breathingPlaying = true;
-        current = breathAudio;
+      return;
+    }
+
+    // ── VOICE LINE ──
+    const el = audio[cmd];
+    if (!el) {
+      console.error('No audio for:', cmd);
+      updateCommandDisplay('AUDIO NOT FOUND');
+      return;
+    }
+
+    // Snapshot breathing state before touching anything
+    const wasBreathing = breathingPlaying;
+
+    stopVoiceLine();
+
+    // Duck breathing — keep it looping, just quieter
+    if (wasBreathing && audio['BREATH']) {
+      audio['BREATH'].volume = BREATH_VOL_DUCKED;
+    }
+
+    el.currentTime = 0;
+
+    playWithRetry(el)
+      .then(() => {
+        current = el;
         animateVisualizer(true);
         requestWakeLock();
-        return;
-      }
 
-      if (audio[cmd]) {
-        stopAllAudio();
-        
-        const audioElement = audio[cmd];
-        
-        // Set breathing volume if it's playing
-        if (breathingPlaying && cmd !== "BREATH") {
-          audio["BREATH"].volume = 0.3;
-        }
-        
-        audioElement.play().then(() => {
-          requestWakeLock();
-        }).catch((error) => {
-          console.error('Failed to play audio:', cmd, error);
-          updateCommandDisplay('PLAYBACK FAILED');
-        });
-        
-        current = audioElement;
-        animateVisualizer(true);
-        
-        audioElement.onended = () => {
-          if (breathingPlaying) {
-            audio["BREATH"].volume = 0.3;
+        el.onended = () => {
+          current = breathingPlaying ? audio['BREATH'] : null;
+          animateVisualizer(breathingPlaying);
+          // Restore breathing to full volume
+          if (wasBreathing && audio['BREATH']) {
+            audio['BREATH'].volume = BREATH_VOL_NORMAL;
           }
-          current = audio["BREATH"];
         };
+      })
+      .catch(err => {
+        console.error(`${cmd} play failed:`, err);
+        updateCommandDisplay('PLAYBACK FAILED — TAP TO RETRY');
+        // Restore breathing volume even if voice line failed
+        if (wasBreathing && audio['BREATH']) {
+          audio['BREATH'].volume = BREATH_VOL_NORMAL;
+        }
+      });
+  }
+
+  // ── WAKE LOCK ───────────────────────────────────────────────────────────────
+  async function requestWakeLock() {
+    if (!('wakeLock' in navigator)) return;
+    try {
+      if (wakeLock) await wakeLock.release();
+      wakeLock = await navigator.wakeLock.request('screen');
+      wakeLock.addEventListener('release', () => { wakeLock = null; });
+    } catch (e) {
+      console.log('WakeLock:', e.message);
+    }
+  }
+
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible' && (breathingPlaying || current)) {
+      requestWakeLock();
+    }
+  });
+
+  // ── WEBSOCKET ───────────────────────────────────────────────────────────────
+  function startHeartbeat() {
+    stopHeartbeat();
+    heartbeatTimer = setInterval(() => {
+      if (ws && ws.readyState === WebSocket.OPEN) ws.send('ping');
+    }, 30000);
+  }
+
+  function stopHeartbeat() {
+    if (heartbeatTimer) { clearInterval(heartbeatTimer); heartbeatTimer = null; }
+  }
+
+  function init() {
+    if (ws) {
+      ws.onclose = null;
+      ws.close();
+    }
+    stopHeartbeat();
+
+    loadAudioFiles();
+
+    updateCommandDisplay('INITIALIZING...');
+    updateConnectionStatus(false, 'CONNECTING...');
+
+    const protocol = location.protocol === 'https:' ? 'wss:' : 'ws:';
+    ws = new WebSocket(`${protocol}//${location.host}`);
+
+    ws.onopen = () => {
+      console.log('WS connected');
+      reconnectAttempts = 0;
+      updateConnectionStatus(true, 'TRANSMISSION ACTIVE');
+      updateCommandDisplay('SYSTEM READY');
+      startHeartbeat();
+
+      // Replay last active command after reconnect (e.g. breathing)
+      if (pendingCmd && pendingCmd !== 'STOP') {
+        console.log('Replaying pending command after reconnect:', pendingCmd);
+        handle(pendingCmd);
+      }
+    };
+
+    ws.onmessage = (event) => {
+      const msg = event.data.trim();
+      if (msg === 'pong') return;
+      try {
+        const data = JSON.parse(msg);
+        if (data.command) { handle(data.command); return; }
+      } catch (_) {}
+      handle(msg);
+    };
+
+    ws.onclose = (event) => {
+      console.log('WS closed:', event.code, event.reason);
+      stopHeartbeat();
+      if (reconnectAttempts < MAX_RECONNECT) {
+        reconnectAttempts++;
+        const delay = Math.min(1000 * reconnectAttempts, 8000);
+        updateConnectionStatus(false, `RECONNECTING (${reconnectAttempts}/${MAX_RECONNECT})...`);
+        setTimeout(init, delay);
       } else {
-        console.error('Audio not found for command:', cmd);
-        updateCommandDisplay('AUDIO NOT FOUND');
+        updateConnectionStatus(false, 'MAX RECONNECTS REACHED — TAP TO RETRY');
       }
-    }
+    };
 
-    function restoreBreathingVolume() {
-      if (audio["BREATH"]) {
-        audio["BREATH"].volume = 0.3;
-      }
-    }
+    ws.onerror = (err) => {
+      console.error('WS error:', err);
+      updateConnectionStatus(false, 'CONNECTION ERROR');
+    };
 
-    // Request wake lock to keep screen awake during audio playback
-    function requestWakeLock() {
-      if ('wakeLock' in navigator) {
-        navigator.wakeLock.request('screen').catch(err => {
-          console.log(`Wake Lock error: ${err.name}, ${err.message}`);
-        });
-      }
-    }
+    initVisualizer();
+  }
 
-    // Initialize page
-    document.addEventListener('DOMContentLoaded', () => {
-      initVisualizer();
-    });
-
-  </script>
+  document.addEventListener('DOMContentLoaded', initVisualizer);
+</script>
 </body>
 </html>
