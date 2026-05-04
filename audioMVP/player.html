@@ -310,14 +310,14 @@ let ws;
   let breathingPlaying = false;
   let visualizerBars = [];
   let reconnectAttempts = 0;
-  const MAX_RECONNECT = 10;
+  const MAX_RECONNECT = 40;
   let pendingCmd = null;
   let wakeLock = null;
   let heartbeatTimer = null;
   let audioLoaded = false;
 
-  const BREATH_VOL_NORMAL = 0.3;
-  const BREATH_VOL_DUCKED = 0.07;
+  const BREATH_VOL_NORMAL = 0.4;
+  const BREATH_VOL_DUCKED = 0.25;
 
   // ── VISUALIZER ──────────────────────────────────────────────────────────────
   function initVisualizer() {

@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>VADER CONTROL INTERFACE</title>
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 60 60'><circle cx='30' cy='30' r='28' fill='none' stroke='%23cc0000' stroke-width='2'/><circle cx='30' cy='30' r='3.5' fill='%23cc0000'/><g stroke='%23cc0000' stroke-width='1.5'><line x1='30' y1='2' x2='30' y2='10'/><line x1='30' y1='50' x2='30' y2='58'/><line x1='2' y1='30' x2='10' y2='30'/><line x1='50' y1='30' x2='58' y2='30'/><line x1='9.4' y1='9.4' x2='15.5' y2='15.5'/><line x1='44.5' y1='44.5' x2='50.6' y2='50.6'/><line x1='50.6' y1='9.4' x2='44.5' y2='15.5'/><line x1='15.5' y1='44.5' x2='9.4' y2='50.6'/></g><g fill='%23cc0000' opacity='0.85'><path d='M30 3 A27 27 0 0 1 49.1 13.5 L44.5 15.5 A22 22 0 0 0 30 10 Z'/><path d='M49.1 46.5 A27 27 0 0 1 30 57 L30 50 A22 22 0 0 0 44.5 44.5 Z'/><path d='M10.9 46.5 A27 27 0 0 1 3 30 L10 30 A22 22 0 0 0 15.5 44.5 Z'/><path d='M49.1 13.5 A27 27 0 0 1 57 30 L50 30 A22 22 0 0 0 44.5 15.5 Z'/></g></svg>">
   <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Share+Tech+Mono&display=swap" rel="stylesheet">
   <style>
     :root {
@@ -114,6 +115,7 @@
       border: 1px solid var(--border);
       background: var(--panel-mid);
       position: relative;
+      transition: border-color 0.3s, box-shadow 0.3s;
     }
 
     .section-label {
@@ -132,10 +134,17 @@
     .section-breath {
       border-color: var(--red-dim);
       background: linear-gradient(160deg, #0f0000, #0d0d0d);
+      transition: border-color 0.3s, box-shadow 0.3s;
     }
     .section-breath .section-label {
       background: #0f0000;
       color: var(--red-glow);
+    }
+
+    /* Active breathing state */
+    .section-breath.breathing-active {
+      border-color: var(--red-glow);
+      box-shadow: 0 0 28px rgba(200,0,0,0.25), inset 0 0 20px rgba(200,0,0,0.05);
     }
 
     .breath-grid {
@@ -156,7 +165,7 @@
       cursor: pointer;
       text-transform: uppercase;
       position: relative;
-      transition: all 0.1s;
+      transition: all 0.2s;
       text-align: center;
       line-height: 1.3;
       overflow: hidden;
@@ -194,6 +203,7 @@
       letter-spacing: 0.15em;
       padding: 18px 10px;
       background: #0a0000;
+      transition: all 0.2s;
     }
     .btn-breath-start::before { background: var(--red-dim); }
     .btn-breath-start:hover {
@@ -202,14 +212,48 @@
     }
     .btn-breath-start:hover::before { background: var(--red-glow); box-shadow: 2px 0 12px var(--red); }
 
+    /* When breathing is ON, start button dims */
+    .btn-breath-start.breath-inactive {
+      opacity: 0.3;
+      pointer-events: none;
+    }
+
     .btn-breath-stop {
-      border-color: #222; color: #666;
+      border-color: #222;
+      color: #555;
       font-family: 'Orbitron', sans-serif;
-      font-weight: 700; font-size: 0.8rem; letter-spacing: 0.15em;
+      font-weight: 700;
+      font-size: 0.8rem;
+      letter-spacing: 0.15em;
       padding: 18px 10px;
+      background: #0a0a0a;
+      transition: all 0.2s;
     }
     .btn-breath-stop::before { background: #333; }
     .btn-breath-stop:hover { background: #1a1a1a; border-color: #aaa; color: #ccc; }
+
+    /* When breathing is ON, stop button glows red */
+    .btn-breath-stop.breath-active {
+      border-color: var(--red-glow);
+      color: var(--red-glow);
+      background: #1a0000;
+      box-shadow: 0 0 16px rgba(200,0,0,0.35);
+    }
+    .btn-breath-stop.breath-active::before { background: var(--red-glow); }
+    .btn-breath-stop.breath-active:hover {
+      background: #2a0000;
+      box-shadow: 0 0 24px rgba(200,0,0,0.55);
+      color: #fff;
+    }
+
+    /* Breathing pulse animation on the stop button when active */
+    @keyframes breath-pulse {
+      0%,100% { box-shadow: 0 0 10px rgba(200,0,0,0.3); }
+      50%      { box-shadow: 0 0 24px rgba(200,0,0,0.6); }
+    }
+    .btn-breath-stop.breath-active {
+      animation: breath-pulse 3s ease-in-out infinite;
+    }
 
     .cmd-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
     .cmd-grid .btn-wide { grid-column: span 2; }
@@ -294,10 +338,10 @@
       <div class="section-label">// RESPIRATION CONTROL</div>
       <div class="section-inner">
         <div class="breath-grid">
-          <button class="btn btn-breath-start" onclick="startBreathing(this)">
+          <button class="btn btn-breath-start" id="btnBreathStart" onclick="startBreathing(this)">
             ▶ INITIATE<br>BREATHING
           </button>
-          <button class="btn btn-breath-stop" onclick="stopBreathing(this)">
+          <button class="btn btn-breath-stop" id="btnBreathStop" onclick="stopBreathing(this)">
             ■ TERMINATE<br>BREATHING
           </button>
         </div>
@@ -385,170 +429,138 @@
   init(); draw();
 })();
 
+// ── STATE ────────────────────────────────────────────────────────────────────
+let breathingOn = false;
+
+function updateBreathUI() {
+  const startBtn  = document.getElementById('btnBreathStart');
+  const stopBtn   = document.getElementById('btnBreathStop');
+  const section   = document.getElementById('breathSection');
+
+  if (breathingOn) {
+    startBtn.classList.add('breath-inactive');
+    stopBtn.classList.add('breath-active');
+    section.classList.add('breathing-active');
+  } else {
+    startBtn.classList.remove('breath-inactive');
+    stopBtn.classList.remove('breath-active');
+    section.classList.remove('breathing-active');
+  }
+}
+
 // ── WEBSOCKET ────────────────────────────────────────────────────────────────
 let ws;
 let reconnectAttempts = 0;
 let maxReconnectAttempts = 10;
-let baseReconnectDelay = 2000;
 let commandQueue = [];
 let heartbeatInterval = null;
 let isManualClose = false;
-let pendingCommands = new Map(); // Track command acknowledgments
+let pendingCommands = new Map();
 let connectionHealth = {
   lastPing: 0,
   latency: 0,
-  uptime: 0,
   commandsSent: 0,
   commandsAcked: 0,
   errors: 0
 };
 
-// Command cooldown system
-let globalCooldown = 0; // Global cooldown timestamp
-let globalCooldownDuration = 2000; // Default 2 seconds, will be updated based on audio duration
-let activeProgressBar = null; // Track current progress bar
+// Cooldown system
+let globalCooldown = 0;
+let globalCooldownDuration = 2000;
+let activeProgressBar = null;
 
-// Command retry system
-let commandRetries = new Map(); // Track retry attempts
-let maxRetries = 3; // Maximum retry attempts per command
-let retryDelay = 1000; // 1 second between retries
+// Retry system
+let maxRetries = 3;
+let retryDelay = 1000;
 
-// Audio duration mapping
+// Audio durations
 let audioDurations = {};
 
-// Load audio files to get durations
 function loadAudioDurations() {
   const audioFiles = {
-    'BREATH': 'audio/breathing.mp3',
-    'PLAY_1': 'audio/youwillfalltothepowerofthedarkside.mp3',
-    'PLAY_2': 'audio/0002.mp3',
-    'IHAVE_COME': 'audio/ihavecomeforyou.mp3',
-    'IMPRESSIVE': 'audio/mostimpressive.mp3',
-    'NO': 'audio/no.mp3',
-    'YES': 'audio/yes.mp3',
-    'WE_SHALL_SEE': 'audio/weshallsee.mp3',
-    'CONVENIENT': 'audio/howconvenient.mp3',
-    'DELUSION': 'audio/itisdelusiontothinkyouractionshavehadanyconsequence.mp3',
-    'WEAK': 'audio/soweak.mp3',
-    'BURN': 'audio/thisarchivewillburn!.mp3',
-    'ESCAPE': 'audio/youshallnotescapemethistime.mp3',
-    'WASTE_TIME': 'audio/youwastetime.mp3'
+    'BREATH':    'audio/breathing.mp3',
+    'PLAY_1':    'audio/youwillfalltothepowerofthedarkside.mp3',
+    'PLAY_2':    'audio/0002.mp3',
+    'IHAVE_COME':'audio/ihavecomeforyou.mp3',
+    'IMPRESSIVE':'audio/mostimpressive.mp3',
+    'NO':        'audio/no.mp3',
+    'YES':       'audio/yes.mp3',
+    'WE_SHALL_SEE':'audio/weshallsee.mp3',
+    'CONVENIENT':'audio/howconvenient.mp3',
+    'DELUSION':  'audio/itisdelusiontothinkyouractionshavehadanyconsequence.mp3',
+    'WEAK':      'audio/soweak.mp3',
+    'BURN':      'audio/thisarchivewillburn!.mp3',
+    'ESCAPE':    'audio/youshallnotescapemethistime.mp3',
+    'WASTE_TIME':'audio/youwastetime.mp3'
   };
-  
+
   for (const [cmd, path] of Object.entries(audioFiles)) {
-    const tempAudio = new Audio(path);
-    
-    tempAudio.addEventListener('loadedmetadata', () => {
-      audioDurations[cmd] = tempAudio.duration * 1000; // Convert to milliseconds
-      console.log(`Audio duration for ${cmd}:`, audioDurations[cmd] + 'ms');
+    const tmp = new Audio(path);
+    tmp.addEventListener('loadedmetadata', () => {
+      audioDurations[cmd] = tmp.duration * 1000;
     });
-    
-    tempAudio.addEventListener('error', () => {
-      console.error(`Failed to load audio for duration: ${cmd}`);
-      // Set default duration if loading fails
+    tmp.addEventListener('error', () => {
       audioDurations[cmd] = 2000;
     });
   }
-  
-  // Set default duration for STOP command
   audioDurations['STOP'] = 500;
 }
 
-function connect(){
-  if (ws && (ws.readyState === WebSocket.CONNECTING || ws.readyState === WebSocket.OPEN)) {
-    console.log('Connection already in progress');
-    return;
-  }
-  
+function connect() {
+  if (ws && (ws.readyState === WebSocket.CONNECTING || ws.readyState === WebSocket.OPEN)) return;
+
   isManualClose = false;
-  const proto=location.protocol==='https:'?'wss:':'ws:';
-  const wsUrl = `${proto}//${location.host}`;
-  console.log(`Connecting to WebSocket (attempt ${reconnectAttempts + 1}):`, wsUrl);
-  
-  ws=new WebSocket(wsUrl);
-  
-  ws.onopen=()=>{
-    console.log('WebSocket connected');
+  const proto = location.protocol === 'https:' ? 'wss:' : 'ws:';
+  ws = new WebSocket(`${proto}//${location.host}`);
+
+  ws.onopen = () => {
     reconnectAttempts = 0;
-    document.getElementById('statusDot').className='status-dot connected';
-    const t=document.getElementById('status');
-    t.textContent='LINK ESTABLISHED'; t.className='status-text connected';
-    
-    // Send queued commands
-    while (commandQueue.length > 0) {
-      const cmd = commandQueue.shift();
-      send(cmd);
-    }
-    
-    // Start heartbeat
+    document.getElementById('statusDot').className = 'status-dot connected';
+    const t = document.getElementById('status');
+    t.textContent = 'LINK ESTABLISHED'; t.className = 'status-text connected';
+    while (commandQueue.length > 0) send(commandQueue.shift());
     startHeartbeat();
   };
-  
-  ws.onclose=(event)=>{
-    console.log('WebSocket disconnected, code:', event.code, 'reason:', event.reason);
+
+  ws.onclose = (event) => {
     stopHeartbeat();
-    document.getElementById('statusDot').className='status-dot disconnected';
-    const t=document.getElementById('status');
-    
+    document.getElementById('statusDot').className = 'status-dot disconnected';
+    const t = document.getElementById('status');
     if (!isManualClose && reconnectAttempts < maxReconnectAttempts) {
       reconnectAttempts++;
-      const delay = 2000;
-      t.textContent='LINK LOST — RETRY...'; t.className='status-text disconnected';
-      setTimeout(connect, delay);
+      t.textContent = 'LINK LOST — RETRY...'; t.className = 'status-text disconnected';
+      setTimeout(connect, 2000);
     } else if (reconnectAttempts >= maxReconnectAttempts) {
-      t.textContent='MAX RECONNECT ATTEMPTS REACHED'; t.className='status-text disconnected';
+      t.textContent = 'MAX RECONNECT ATTEMPTS REACHED'; t.className = 'status-text disconnected';
     } else {
-      t.textContent='CONNECTION CLOSED'; t.className='status-text disconnected';
+      t.textContent = 'CONNECTION CLOSED'; t.className = 'status-text disconnected';
     }
   };
-  
-  ws.onerror=(error)=>{
-    console.error('WebSocket error:', error);
-    document.getElementById('statusDot').className='status-dot disconnected';
-    const t=document.getElementById('status');
-    t.textContent='CONNECTION ERROR'; t.className='status-text disconnected';
+
+  ws.onerror = () => {
+    document.getElementById('statusDot').className = 'status-dot disconnected';
+    const t = document.getElementById('status');
+    t.textContent = 'CONNECTION ERROR'; t.className = 'status-text disconnected';
   };
-  
-  ws.onmessage=(event)=>{
+
+  ws.onmessage = (event) => {
     try {
       const data = JSON.parse(event.data);
-      
       if (data.type === 'pong') {
         connectionHealth.latency = Date.now() - connectionHealth.lastPing;
-        console.log('Ping response, latency:', connectionHealth.latency + 'ms');
         return;
       }
-      
-      if (data.type === 'ack') {
-        if (pendingCommands.has(data.id)) {
-          const cmd = pendingCommands.get(data.id);
-          console.log('Command acknowledged:', cmd.command, 'ID:', data.id, 'Retries:', cmd.retryCount);
-          
-          // Clear timeout if exists
-          if (cmd.timeoutId) {
-            clearTimeout(cmd.timeoutId);
-          }
-          
-          pendingCommands.delete(data.id);
-          connectionHealth.commandsAcked++;
-          
-          // Clear any error indicators
-          clearErrorIndicator();
-        }
+      if (data.type === 'ack' && pendingCommands.has(data.id)) {
+        const cmd = pendingCommands.get(data.id);
+        if (cmd.timeoutId) clearTimeout(cmd.timeoutId);
+        pendingCommands.delete(data.id);
+        connectionHealth.commandsAcked++;
+        clearErrorIndicator();
         return;
       }
-      
-      if (data.type === 'health') {
-        // Update connection health from server
-        Object.assign(connectionHealth, data.health);
-        return;
-      }
-      
     } catch (e) {
-      // Handle plain text messages (backward compatibility)
       if (event.data === 'pong') {
         connectionHealth.latency = Date.now() - connectionHealth.lastPing;
-        return;
       }
     }
   };
@@ -561,265 +573,121 @@ function startHeartbeat() {
       connectionHealth.lastPing = Date.now();
       ws.send(JSON.stringify({ type: 'ping', timestamp: connectionHealth.lastPing }));
     }
-  }, 30000); // Send ping every 30 seconds
+  }, 30000);
 }
-
-// Network status detection
-window.addEventListener('online', () => {
-  console.log('Network connection restored');
-  if (!ws || ws.readyState === WebSocket.CLOSED) {
-    connect();
-  }
-});
-
-window.addEventListener('offline', () => {
-  console.log('Network connection lost');
-  document.getElementById('statusDot').className='status-dot disconnected';
-  const t=document.getElementById('status');
-  t.textContent='NETWORK OFFLINE'; t.className='status-text disconnected';
-  if (ws) {
-    ws.close();
-  }
-});
-
-// Connection quality indicator
-function updateConnectionQuality() {
-  const quality = getConnectionQuality();
-  const statusReadout = document.getElementById('lastCmd');
-  const successRate = connectionHealth.commandsSent > 0 
-    ? Math.round((connectionHealth.commandsAcked / connectionHealth.commandsSent) * 100)
-    : 100;
-  
-  statusReadout.textContent = `LATENCY: ${connectionHealth.latency}ms | SUCCESS: ${successRate}% | QUALITY: ${quality}`;
-}
-
-function getConnectionQuality() {
-  if (connectionHealth.latency === 0) return 'UNKNOWN';
-  if (connectionHealth.latency < 50) return 'EXCELLENT';
-  if (connectionHealth.latency < 100) return 'GOOD';
-  if (connectionHealth.latency < 200) return 'FAIR';
-  return 'POOR';
-}
-
-// Update connection quality every 5 seconds
-setInterval(updateConnectionQuality, 5000);
 
 function stopHeartbeat() {
-  if (heartbeatInterval) {
-    clearInterval(heartbeatInterval);
-    heartbeatInterval = null;
-  }
+  if (heartbeatInterval) { clearInterval(heartbeatInterval); heartbeatInterval = null; }
 }
 
-function send(cmd){ 
+window.addEventListener('online', () => {
+  if (!ws || ws.readyState === WebSocket.CLOSED) connect();
+});
+window.addEventListener('offline', () => {
+  document.getElementById('statusDot').className = 'status-dot disconnected';
+  const t = document.getElementById('status');
+  t.textContent = 'NETWORK OFFLINE'; t.className = 'status-text disconnected';
+  if (ws) ws.close();
+});
+
+function updateConnectionQuality() {
+  const latency = connectionHealth.latency;
+  let quality = 'UNKNOWN';
+  if (latency > 0 && latency < 50)  quality = 'EXCELLENT';
+  else if (latency < 100)            quality = 'GOOD';
+  else if (latency < 200)            quality = 'FAIR';
+  else if (latency >= 200)           quality = 'POOR';
+  const successRate = connectionHealth.commandsSent > 0
+    ? Math.round((connectionHealth.commandsAcked / connectionHealth.commandsSent) * 100)
+    : 100;
+  document.getElementById('lastCmd').textContent =
+    `LATENCY: ${latency}ms | SUCCESS: ${successRate}% | QUALITY: ${quality}`;
+}
+setInterval(updateConnectionQuality, 5000);
+
+function send(cmd) {
   if (ws && ws.readyState === WebSocket.OPEN) {
     try {
-      // Add command ID for acknowledgment tracking
       const cmdId = Date.now() + '_' + Math.random().toString(36).substr(2, 9);
-      const message = JSON.stringify({ type: 'cmd', id: cmdId, command: cmd });
-      
-      ws.send(message);
-      console.log('Command sent:', cmd, 'ID:', cmdId);
+      ws.send(JSON.stringify({ type: 'cmd', id: cmdId, command: cmd }));
       connectionHealth.commandsSent++;
-      
-      // Track for acknowledgment and retry
-      pendingCommands.set(cmdId, {
-        command: cmd,
-        timestamp: Date.now(),
-        retryCount: 0,
-        originalSendTime: Date.now()
-      });
-      
-      // Set timeout for acknowledgment and retry
-      const timeoutId = setTimeout(() => {
-        if (pendingCommands.has(cmdId)) {
-          const cmdData = pendingCommands.get(cmdId);
-          console.warn('Command not acknowledged:', cmd, 'ID:', cmdId, 'Retries:', cmdData.retryCount);
-          
-          if (cmdData.retryCount < maxRetries) {
-            // Retry the command
-            cmdData.retryCount++;
-            cmdData.timestamp = Date.now();
-            
-            console.log('Retrying command:', cmd, 'Attempt:', cmdData.retryCount + 1);
-            
-            // Resend with same ID for tracking
-            const retryMessage = JSON.stringify({ type: 'cmd', id: cmdId, command: cmd, retry: true });
-            if (ws && ws.readyState === WebSocket.OPEN) {
-              ws.send(retryMessage);
-              connectionHealth.commandsSent++;
-              
-              // Set another timeout for this retry
-              setTimeout(() => {
-                if (pendingCommands.has(cmdId)) {
-                  const retryData = pendingCommands.get(cmdId);
-                  if (retryData.retryCount < maxRetries) {
-                    // Retry again with same ID
-                    retryData.retryCount++;
-                    retryData.timestamp = Date.now();
-                    
-                    const retryMessage2 = JSON.stringify({ type: 'cmd', id: cmdId, command: cmd, retry: true });
-                    if (ws && ws.readyState === WebSocket.OPEN) {
-                      ws.send(retryMessage2);
-                      connectionHealth.commandsSent++;
-                      
-                      setTimeout(() => {
-                        if (pendingCommands.has(cmdId)) {
-                          const retryData2 = pendingCommands.get(cmdId);
-                          if (retryData2.retryCount < maxRetries) {
-                            retryData2.retryCount++;
-                            retryData2.timestamp = Date.now();
-                            
-                            const retryMessage3 = JSON.stringify({ type: 'cmd', id: cmdId, command: cmd, retry: true });
-                            if (ws && ws.readyState === WebSocket.OPEN) {
-                              ws.send(retryMessage3);
-                              connectionHealth.commandsSent++;
-                              
-                              setTimeout(() => {
-                                if (pendingCommands.has(cmdId)) {
-                                  console.error('Command failed after all retries:', cmd, 'ID:', cmdId);
-                                  pendingCommands.delete(cmdId);
-                                  connectionHealth.errors++;
-                                  showErrorIndicator(cmd);
-                                }
-                              }, retryDelay);
-                            } else {
-                              console.error('Command failed after max retries:', cmd, 'ID:', cmdId);
-                              pendingCommands.delete(cmdId);
-                              connectionHealth.errors++;
-                              showErrorIndicator(cmd);
-                            }
-                          }
-                        }
-                      }, retryDelay);
-                    } else {
-                      console.error('Command failed after max retries:', cmd, 'ID:', cmdId);
-                      pendingCommands.delete(cmdId);
-                      connectionHealth.errors++;
-                      showErrorIndicator(cmd);
-                    }
-                  }
-                }
-              }, retryDelay);
-            } else {
-              console.error('WebSocket not ready for retry:', cmd);
-              pendingCommands.delete(cmdId);
-              connectionHealth.errors++;
-              showErrorIndicator(cmd);
-            }
+
+      const entry = { command: cmd, timestamp: Date.now(), retryCount: 0 };
+      pendingCommands.set(cmdId, entry);
+
+      const scheduleRetry = (id, attempt) => {
+        return setTimeout(() => {
+          if (!pendingCommands.has(id)) return;
+          const e = pendingCommands.get(id);
+          if (attempt < maxRetries && ws && ws.readyState === WebSocket.OPEN) {
+            e.retryCount++;
+            ws.send(JSON.stringify({ type: 'cmd', id, command: cmd, retry: true }));
+            connectionHealth.commandsSent++;
+            e.timeoutId = scheduleRetry(id, attempt + 1);
           } else {
-            // Max retries reached
-            console.error('Command failed after max retries:', cmd, 'ID:', cmdId);
-            pendingCommands.delete(cmdId);
+            pendingCommands.delete(id);
             connectionHealth.errors++;
             showErrorIndicator(cmd);
           }
-        }
-      }, 3000); // 3 second timeout for acknowledgment
-      
-      // Store timeout ID for cleanup
-      pendingCommands.get(cmdId).timeoutId = timeoutId;
-      
-    } catch (error) {
-      console.error('Failed to send command:', error);
+        }, attempt === 0 ? 3000 : retryDelay);
+      };
+
+      entry.timeoutId = scheduleRetry(cmdId, 0);
+      pendingCommands.get(cmdId).timeoutId = entry.timeoutId;
+
+    } catch (err) {
       commandQueue.push(cmd);
       connectionHealth.errors++;
     }
   } else {
-    console.log('WebSocket not ready, queuing command:', cmd);
     commandQueue.push(cmd);
-    if (!ws || ws.readyState === WebSocket.CLOSED) {
-      connect();
-    }
+    if (!ws || ws.readyState === WebSocket.CLOSED) connect();
   }
 }
 
-function disconnect() {
-  isManualClose = true;
-  stopHeartbeat();
-  if (ws) {
-    ws.close();
-  }
-}
-
-function fireCmd(btn,cmd){
-  // Check global cooldown
+function fireCmd(btn, cmd) {
   const now = Date.now();
-  
   if (now < globalCooldown) {
-    const remainingTime = Math.ceil((globalCooldown - now) / 1000);
-    console.log(`Global cooldown active, ${remainingTime}s remaining`);
-    
-    // Simple visual feedback - just disable button briefly
     btn.disabled = true;
     btn.style.opacity = '0.6';
-    setTimeout(() => {
-      btn.disabled = false;
-      btn.style.opacity = '';
-    }, 300);
+    setTimeout(() => { btn.disabled = false; btn.style.opacity = ''; }, 300);
     return;
   }
-  
-  // Execute command
+
   send(cmd);
-  document.getElementById('lastCmd').textContent=`LAST CMD: ${cmd}`;
-  
-  // Set global cooldown based on audio duration + 1 second buffer
+  document.getElementById('lastCmd').textContent = `LAST CMD: ${cmd}`;
+
   const baseDuration = audioDurations[cmd] || globalCooldownDuration;
-  const cooldownTime = baseDuration + 500; // Add .5 second buffer
+  const cooldownTime = baseDuration + 500;
   globalCooldown = now + cooldownTime;
-  console.log(`Cooldown set to ${cooldownTime}ms (${baseDuration}ms audio + 1000ms buffer) for command ${cmd}`);
-  
-  // Visual feedback
+
   btn.classList.remove('ripple');
   void btn.offsetWidth;
   btn.classList.add('ripple');
-  setTimeout(()=>btn.classList.remove('ripple'),400);
-  
-  // Remove existing progress bar if any
-  if (activeProgressBar) {
-    activeProgressBar.remove();
-  }
-  
-  // Global cooldown progress bar
+  setTimeout(() => btn.classList.remove('ripple'), 400);
+
+  if (activeProgressBar) activeProgressBar.remove();
+
   const progressBar = document.createElement('div');
   progressBar.style.cssText = `
-    position: fixed;
-    bottom: 20px;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 200px;
-    height: 8px;
-    background: rgba(255, 136, 0, 0.2);
-    border-radius: 4px;
-    overflow: hidden;
-    pointer-events: none;
-    z-index: 1000;
-    border: 1px solid var(--amber);
-    box-shadow: 0 0 20px rgba(255, 136, 0, 0.5);
+    position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
+    width: 200px; height: 8px; background: rgba(255,136,0,0.2);
+    border-radius: 4px; overflow: hidden; pointer-events: none; z-index: 1000;
+    border: 1px solid var(--amber); box-shadow: 0 0 20px rgba(255,136,0,0.5);
   `;
-  
   const progressFill = document.createElement('div');
   progressFill.style.cssText = `
-    height: 100%;
-    background: linear-gradient(90deg, var(--amber), var(--red-glow));
-    width: 0%;
-    transition: width 0.1s linear;
-    box-shadow: 0 0 10px rgba(255, 136, 0, 0.8);
+    height: 100%; background: linear-gradient(90deg, var(--amber), var(--red-glow));
+    width: 0%; box-shadow: 0 0 10px rgba(255,136,0,0.8);
   `;
-  
   progressBar.appendChild(progressFill);
   document.body.appendChild(progressBar);
   activeProgressBar = progressBar;
-  
-  // Animate progress bar
+
   const startTime = Date.now();
   const updateProgress = () => {
-    const elapsed = Date.now() - startTime;
-    const progress = Math.min(elapsed / cooldownTime, 1);
-    
+    const progress = Math.min((Date.now() - startTime) / cooldownTime, 1);
     progressFill.style.width = (progress * 100) + '%';
-    
     if (progress < 1) {
       requestAnimationFrame(updateProgress);
     } else {
@@ -827,46 +695,37 @@ function fireCmd(btn,cmd){
       activeProgressBar = null;
     }
   };
-  
   requestAnimationFrame(updateProgress);
 }
 
-function startBreathing(btn){
-  fireCmd(btn,'BREATH');
-  document.getElementById('breathSection').classList.add('breathing-active');
+function startBreathing(btn) {
+  breathingOn = true;
+  updateBreathUI();
+  fireCmd(btn, 'BREATH');
 }
 
-function stopBreathing(btn){
-  fireCmd(btn,'STOP');
-  document.getElementById('breathSection').classList.remove('breathing-active');
+function stopBreathing(btn) {
+  breathingOn = false;
+  updateBreathUI();
+  fireCmd(btn, 'STOP');
 }
 
-// Error indicator for failed commands
 function showErrorIndicator(command) {
-  const statusReadout = document.getElementById('lastCmd');
-  const originalText = statusReadout.textContent;
-  
-  statusReadout.textContent = `COMMAND FAILED: ${command}`;
-  statusReadout.style.color = 'var(--red-glow)';
-  statusReadout.style.animation = 'blink 1s';
-  
-  setTimeout(() => {
-    statusReadout.textContent = originalText;
-    statusReadout.style.color = '';
-    statusReadout.style.animation = '';
-  }, 3000);
+  const el = document.getElementById('lastCmd');
+  const original = el.textContent;
+  el.textContent = `COMMAND FAILED: ${command}`;
+  el.style.color = 'var(--red-glow)';
+  setTimeout(() => { el.textContent = original; el.style.color = ''; }, 3000);
 }
 
 function clearErrorIndicator() {
-  const statusReadout = document.getElementById('lastCmd');
-  if (statusReadout.textContent.includes('COMMAND FAILED')) {
-    statusReadout.textContent = 'LAST CMD: —';
-    statusReadout.style.color = '';
-    statusReadout.style.animation = '';
+  const el = document.getElementById('lastCmd');
+  if (el.textContent.includes('COMMAND FAILED')) {
+    el.textContent = 'LAST CMD: —';
+    el.style.color = '';
   }
 }
 
-// Load audio durations and connect
 loadAudioDurations();
 connect();
 </script>
