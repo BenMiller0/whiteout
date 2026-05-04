@@ -304,7 +304,7 @@
   </div>
 
 <script>
-  let ws;
+let ws;
   let audio = {};
   let current = null;
   let breathingPlaying = false;
@@ -314,9 +314,10 @@
   let pendingCmd = null;
   let wakeLock = null;
   let heartbeatTimer = null;
+  let audioLoaded = false;
 
-  const BREATH_VOL_NORMAL = 0.4;
-  const BREATH_VOL_DUCKED = 0.25;
+  const BREATH_VOL_NORMAL = 0.3;
+  const BREATH_VOL_DUCKED = 0.07;
 
   // ── VISUALIZER ──────────────────────────────────────────────────────────────
   function initVisualizer() {
@@ -373,22 +374,7 @@
 
   // ── AUDIO ───────────────────────────────────────────────────────────────────
 
-  function teardownAudio() {
-    for (const el of Object.values(audio)) {
-      if (!el) continue;
-      el.pause();
-      el.onended = null;
-      el.onerror = null;
-      el.src = '';
-      el.load();
-    }
-    audio = {};
-    current = null;
-  }
-
   function loadAudioFiles() {
-    teardownAudio();
-
     const map = {
       PLAY_1:      'audio/youwillfalltothepowerofthedarkside.mp3',
       PLAY_2:      'audio/0002.mp3',
@@ -414,6 +400,23 @@
       }
       audio[cmd] = el;
     }
+
+    audioLoaded = true;
+  }
+
+  // Soft reset — resets playback state without recreating Audio objects.
+  // Safe to call on reconnect because it preserves browser gesture trust.
+  function resetAudioState() {
+    for (const [key, el] of Object.entries(audio)) {
+      if (!el) continue;
+      el.pause();
+      el.onended = null;
+      if (key !== 'BREATH') el.currentTime = 0;
+      if (key === 'BREATH') el.volume = BREATH_VOL_NORMAL;
+    }
+    current = null;
+    breathingPlaying = false;
+    animateVisualizer(false);
   }
 
   // Full stop — kills everything including breathing
@@ -577,7 +580,14 @@
     }
     stopHeartbeat();
 
-    loadAudioFiles();
+    // Only create Audio objects on the very first call (requires user gesture).
+    // On every reconnect after that, just reset state — recreating Audio objects
+    // loses the browser's gesture trust and causes "tap to retry" failures.
+    if (!audioLoaded) {
+      loadAudioFiles();
+    } else {
+      resetAudioState();
+    }
 
     updateCommandDisplay('INITIALIZING...');
     updateConnectionStatus(false, 'CONNECTING...');
@@ -592,7 +602,7 @@
       updateCommandDisplay('SYSTEM READY');
       startHeartbeat();
 
-      // Replay last active command after reconnect (e.g. breathing)
+      // Replay last active command after reconnect (e.g. breathing was running)
       if (pendingCmd && pendingCmd !== 'STOP') {
         console.log('Replaying pending command after reconnect:', pendingCmd);
         handle(pendingCmd);
