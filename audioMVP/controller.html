@@ -470,18 +470,174 @@
 })();
 
 // ── STATE ────────────────────────────────────────────────────────────────────
-let breathingOn    = false;
-let localAudioOn   = false;
-let localAudioLoaded = false;
+let breathingOn  = false;
+let localAudioOn = false;
 
 const BREATH_VOL_NORMAL = 0.3;
 const BREATH_VOL_DUCKED = 0.15;
 
-// Local audio objects (only created after toggle is turned on)
-let localAudio = {};
-let localCurrent = null;
-let localBreathingPlaying = false;
+// ── LOCAL AUDIO ───────────────────────────────────────────────────────────────
+// All local audio goes through a single AudioContext so mobile can't block it.
+// The context is created and unlocked on the toggle tap (a user gesture).
+let audioCtx        = null;
+let localSources    = {}; // AudioBufferSourceNode per playing cmd
+let localBuffers    = {}; // decoded AudioBuffer cache
+let breathGain      = null;
+let breathSource    = null;
+let breathPlaying   = false;
+let localAudioReady = false;
 
+const LOCAL_AUDIO_MAP = {
+  PLAY_1:      'audio/youwillfalltothepowerofthedarkside.mp3',
+  PLAY_2:      'audio/0002.mp3',
+  BREATH:      'audio/breathing.mp3',
+  IHAVE_COME:  'audio/ihavecomeforyou.mp3',
+  IMPRESSIVE:  'audio/mostimpressive.mp3',
+  NO:          'audio/no.mp3',
+  YES:         'audio/yes.mp3',
+  WE_SHALL_SEE:'audio/weshallsee.mp3',
+  CONVENIENT:  'audio/howconvenient.mp3',
+  DELUSION:    'audio/itisdelusiontothinkyouractionshavehadanyconsequence.mp3',
+  WEAK:        'audio/soweak.mp3',
+  BURN:        'audio/thisarchivewillburn!.mp3',
+  ESCAPE:      'audio/youshallnotescapemethistime.mp3',
+  WASTE_TIME:  'audio/youwastetime.mp3',
+};
+
+async function initLocalAudio() {
+  // Create and immediately resume AudioContext inside the user gesture
+  audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  await audioCtx.resume();
+
+  // Fetch and decode all buffers in parallel
+  const entries = Object.entries(LOCAL_AUDIO_MAP);
+  await Promise.allSettled(entries.map(async ([cmd, src]) => {
+    try {
+      const res = await fetch(src);
+      const arr = await res.arrayBuffer();
+      localBuffers[cmd] = await audioCtx.decodeAudioData(arr);
+    } catch (e) {
+      console.warn('Failed to load local audio:', cmd, e);
+    }
+  }));
+
+  localAudioReady = true;
+  console.log('Local audio ready');
+}
+
+function stopLocalVoiceLine() {
+  for (const [key, src] of Object.entries(localSources)) {
+    if (key === 'BREATH') continue;
+    try { src.stop(); } catch(_) {}
+    delete localSources[key];
+  }
+}
+
+function stopAllLocal() {
+  for (const src of Object.values(localSources)) {
+    try { src.stop(); } catch(_) {}
+  }
+  localSources = {};
+  breathSource  = null;
+  breathPlaying = false;
+  breathGain    = null;
+}
+
+function playLocalCmd(cmd) {
+  if (!localAudioOn || !localAudioReady || !audioCtx) return;
+
+  if (cmd === 'STOP') {
+    stopAllLocal();
+    return;
+  }
+
+  if (cmd === 'BREATH') {
+    // Stop any existing breath first
+    if (breathSource) { try { breathSource.stop(); } catch(_) {} }
+
+    const buf = localBuffers['BREATH'];
+    if (!buf) return;
+
+    breathGain = audioCtx.createGain();
+    breathGain.gain.value = BREATH_VOL_NORMAL;
+    breathGain.connect(audioCtx.destination);
+
+    breathSource = audioCtx.createBufferSource();
+    breathSource.buffer = buf;
+    breathSource.loop = true;
+    breathSource.connect(breathGain);
+    breathSource.start(0);
+
+    localSources['BREATH'] = breathSource;
+    breathPlaying = true;
+    return;
+  }
+
+  const buf = localBuffers[cmd];
+  if (!buf) { console.warn('No buffer for', cmd); return; }
+
+  const wasBreathing = breathPlaying;
+
+  // Duck breathing
+  if (wasBreathing && breathGain) {
+    breathGain.gain.setTargetAtTime(BREATH_VOL_DUCKED, audioCtx.currentTime, 0.05);
+  }
+
+  // Stop any existing voice line
+  stopLocalVoiceLine();
+
+  const gainNode = audioCtx.createGain();
+  gainNode.gain.value = 1.0;
+  gainNode.connect(audioCtx.destination);
+
+  const src = audioCtx.createBufferSource();
+  src.buffer = buf;
+  src.connect(gainNode);
+  src.start(0);
+  localSources[cmd] = src;
+
+  src.onended = () => {
+    delete localSources[cmd];
+    // Restore breath volume
+    if (wasBreathing && breathGain && breathPlaying) {
+      breathGain.gain.setTargetAtTime(BREATH_VOL_NORMAL, audioCtx.currentTime, 0.1);
+    }
+  };
+}
+
+async function toggleLocalAudio() {
+  localAudioOn = !localAudioOn;
+  const toggle = document.getElementById('localAudioToggle');
+  toggle.classList.toggle('on', localAudioOn);
+
+  if (localAudioOn) {
+    // Disconnect WebSocket — local mode is fully standalone
+    disconnectWS();
+    // Init audio inside this user gesture
+    if (!localAudioReady) {
+      toggle.querySelector('.toggle-label').textContent = 'LOADING...';
+      await initLocalAudio();
+      toggle.querySelector('.toggle-label').textContent = 'LOCAL AUDIO';
+    }
+    // Update status bar to reflect standalone mode
+    document.getElementById('statusDot').className = 'status-dot connected';
+    const t = document.getElementById('status');
+    t.textContent = 'LOCAL MODE'; t.className = 'status-text connected';
+  } else {
+    // Turn off local audio and reconnect to WS
+    stopAllLocal();
+    breathOn_resetUI();
+    connect();
+  }
+}
+
+function breathOn_resetUI() {
+  // If breathing was playing locally, reflect stop in UI
+  breathingOn = false;
+  updateBreathUI();
+}
+
+// ── BREATH UI ─────────────────────────────────────────────────────────────────
 function updateBreathUI() {
   const startBtn = document.getElementById('btnBreathStart');
   const stopBtn  = document.getElementById('btnBreathStop');
@@ -497,134 +653,34 @@ function updateBreathUI() {
   }
 }
 
-// ── LOCAL AUDIO ───────────────────────────────────────────────────────────────
-function toggleLocalAudio() {
-  localAudioOn = !localAudioOn;
-  const toggle = document.getElementById('localAudioToggle');
-  toggle.classList.toggle('on', localAudioOn);
-
-  if (localAudioOn && !localAudioLoaded) {
-    loadLocalAudio();
-  }
-
-  if (!localAudioOn) {
-    stopAllLocalAudio();
-  }
-}
-
-function loadLocalAudio() {
-  const map = {
-    PLAY_1:      'audio/youwillfalltothepowerofthedarkside.mp3',
-    PLAY_2:      'audio/0002.mp3',
-    BREATH:      'audio/breathing.mp3',
-    IHAVE_COME:  'audio/ihavecomeforyou.mp3',
-    IMPRESSIVE:  'audio/mostimpressive.mp3',
-    NO:          'audio/no.mp3',
-    YES:         'audio/yes.mp3',
-    WE_SHALL_SEE:'audio/weshallsee.mp3',
-    CONVENIENT:  'audio/howconvenient.mp3',
-    DELUSION:    'audio/itisdelusiontothinkyouractionshavehadanyconsequence.mp3',
-    WEAK:        'audio/soweak.mp3',
-    BURN:        'audio/thisarchivewillburn!.mp3',
-    ESCAPE:      'audio/youshallnotescapemethistime.mp3',
-    WASTE_TIME:  'audio/youwastetime.mp3',
-  };
-  for (const [cmd, src] of Object.entries(map)) {
-    const el = new Audio(src);
-    if (cmd === 'BREATH') { el.loop = true; el.volume = BREATH_VOL_NORMAL; }
-    localAudio[cmd] = el;
-  }
-  localAudioLoaded = true;
-}
-
-function stopAllLocalAudio() {
-  for (const el of Object.values(localAudio)) {
-    if (!el) continue;
-    el.pause();
-    el.currentTime = 0;
-    el.onended = null;
-  }
-  localCurrent = null;
-  localBreathingPlaying = false;
-}
-
-function stopLocalVoiceLine() {
-  for (const [key, el] of Object.entries(localAudio)) {
-    if (key === 'BREATH' || !el) continue;
-    el.pause();
-    el.currentTime = 0;
-    el.onended = null;
-  }
-  if (localCurrent && localCurrent !== localAudio['BREATH']) localCurrent = null;
-}
-
-function playLocal(cmd) {
-  if (!localAudioOn || !localAudioLoaded) return;
-
-  if (cmd === 'STOP') {
-    stopAllLocalAudio();
-    return;
-  }
-
-  if (cmd === 'BREATH') {
-    stopLocalVoiceLine();
-    const el = localAudio['BREATH'];
-    if (!el) return;
-    el.volume = BREATH_VOL_NORMAL;
-    el.loop = true;
-    el.currentTime = 0;
-    el.play().then(() => {
-      localBreathingPlaying = true;
-      localCurrent = el;
-    }).catch(() => {});
-    return;
-  }
-
-  const el = localAudio[cmd];
-  if (!el) return;
-
-  const wasBreathing = localBreathingPlaying;
-  stopLocalVoiceLine();
-
-  if (wasBreathing && localAudio['BREATH']) {
-    localAudio['BREATH'].volume = BREATH_VOL_DUCKED;
-  }
-
-  el.currentTime = 0;
-  el.play().then(() => {
-    localCurrent = el;
-    el.onended = () => {
-      localCurrent = localBreathingPlaying ? localAudio['BREATH'] : null;
-      if (wasBreathing && localAudio['BREATH']) {
-        localAudio['BREATH'].volume = BREATH_VOL_NORMAL;
-      }
-    };
-  }).catch(() => {
-    if (wasBreathing && localAudio['BREATH']) {
-      localAudio['BREATH'].volume = BREATH_VOL_NORMAL;
-    }
-  });
-}
-
 // ── WEBSOCKET ────────────────────────────────────────────────────────────────
 let ws;
 let reconnectAttempts = 0;
 const maxReconnectAttempts = 10;
-let commandQueue = [];
+let commandQueue     = [];
 let heartbeatInterval = null;
-let isManualClose = false;
-let pendingCommands = new Map();
+let isManualClose    = false;
+let pendingCommands  = new Map();
 let connectionHealth = {
   lastPing: 0, latency: 0,
   commandsSent: 0, commandsAcked: 0, errors: 0
 };
 
-let globalCooldown = 0;
+let globalCooldown        = 0;
 const globalCooldownDuration = 2000;
-let activeProgressBar = null;
-const maxRetries = 3;
-const retryDelay = 1000;
-let audioDurations = {};
+let activeProgressBar     = null;
+const maxRetries          = 3;
+const retryDelay          = 1000;
+let audioDurations        = {};
+
+function disconnectWS() {
+  isManualClose = true;
+  stopHeartbeat();
+  if (ws) { ws.close(); ws = null; }
+  document.getElementById('statusDot').className = 'status-dot disconnected';
+  const t = document.getElementById('status');
+  t.textContent = 'DISCONNECTED'; t.className = 'status-text disconnected';
+}
 
 function loadAudioDurations() {
   const audioFiles = {
@@ -651,6 +707,7 @@ function loadAudioDurations() {
 }
 
 function connect() {
+  if (localAudioOn) return; // never connect in local mode
   if (ws && (ws.readyState === WebSocket.CONNECTING || ws.readyState === WebSocket.OPEN)) return;
   isManualClose = false;
   const proto = location.protocol === 'https:' ? 'wss:' : 'ws:';
@@ -667,6 +724,7 @@ function connect() {
 
   ws.onclose = () => {
     stopHeartbeat();
+    if (localAudioOn) return; // don't reconnect if we switched to local mode
     document.getElementById('statusDot').className = 'status-dot disconnected';
     const t = document.getElementById('status');
     if (!isManualClose && reconnectAttempts < maxReconnectAttempts) {
@@ -717,8 +775,9 @@ function stopHeartbeat() {
   if (heartbeatInterval) { clearInterval(heartbeatInterval); heartbeatInterval = null; }
 }
 
-window.addEventListener('online', () => { if (!ws || ws.readyState === WebSocket.CLOSED) connect(); });
+window.addEventListener('online',  () => { if (!localAudioOn && (!ws || ws.readyState === WebSocket.CLOSED)) connect(); });
 window.addEventListener('offline', () => {
+  if (localAudioOn) return;
   document.getElementById('statusDot').className = 'status-dot disconnected';
   const t = document.getElementById('status');
   t.textContent = 'NETWORK OFFLINE'; t.className = 'status-text disconnected';
@@ -726,6 +785,7 @@ window.addEventListener('offline', () => {
 });
 
 function updateConnectionQuality() {
+  if (localAudioOn) return; // don't overwrite LOCAL MODE status
   const l = connectionHealth.latency;
   const quality = l === 0 ? 'UNKNOWN' : l < 50 ? 'EXCELLENT' : l < 100 ? 'GOOD' : l < 200 ? 'FAIR' : 'POOR';
   const rate = connectionHealth.commandsSent > 0
@@ -735,6 +795,7 @@ function updateConnectionQuality() {
 setInterval(updateConnectionQuality, 5000);
 
 function send(cmd) {
+  if (localAudioOn) return; // local mode — never send over WS
   if (ws && ws.readyState === WebSocket.OPEN) {
     try {
       const cmdId = Date.now() + '_' + Math.random().toString(36).substr(2, 9);
@@ -775,8 +836,12 @@ function fireCmd(btn, cmd) {
     return;
   }
 
-  send(cmd);
-  playLocal(cmd);  // ← play locally if toggle is on
+  if (localAudioOn) {
+    playLocalCmd(cmd);
+  } else {
+    send(cmd);
+  }
+
   document.getElementById('lastCmd').textContent = `LAST CMD: ${cmd}`;
 
   const baseDuration = audioDurations[cmd] || globalCooldownDuration;
@@ -821,7 +886,6 @@ function startBreathing(btn) {
     setTimeout(() => { btn.disabled = false; btn.style.opacity = ''; }, 300);
     return;
   }
-  
   breathingOn = true;
   updateBreathUI();
   fireCmd(btn, 'BREATH');
@@ -834,8 +898,8 @@ function stopBreathing(btn) {
     setTimeout(() => { btn.disabled = false; btn.style.opacity = ''; }, 300);
     return;
   }
-  
   breathingOn = false;
+  breathPlaying = false;
   updateBreathUI();
   fireCmd(btn, 'STOP');
 }
