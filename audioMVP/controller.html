@@ -815,12 +815,26 @@ function fireCmd(btn, cmd) {
 }
 
 function startBreathing(btn) {
+  const now = Date.now();
+  if (now < globalCooldown) {
+    btn.disabled = true; btn.style.opacity = '0.6';
+    setTimeout(() => { btn.disabled = false; btn.style.opacity = ''; }, 300);
+    return;
+  }
+  
   breathingOn = true;
   updateBreathUI();
   fireCmd(btn, 'BREATH');
 }
 
 function stopBreathing(btn) {
+  const now = Date.now();
+  if (now < globalCooldown) {
+    btn.disabled = true; btn.style.opacity = '0.6';
+    setTimeout(() => { btn.disabled = false; btn.style.opacity = ''; }, 300);
+    return;
+  }
+  
   breathingOn = false;
   updateBreathUI();
   fireCmd(btn, 'STOP');
