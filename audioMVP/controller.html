@@ -140,8 +140,6 @@
       background: #0f0000;
       color: var(--red-glow);
     }
-
-    /* Active breathing state */
     .section-breath.breathing-active {
       border-color: var(--red-glow);
       box-shadow: 0 0 28px rgba(200,0,0,0.25), inset 0 0 20px rgba(200,0,0,0.05);
@@ -211,8 +209,6 @@
       box-shadow: 0 0 20px rgba(200,0,0,0.4), inset 0 0 20px rgba(200,0,0,0.1);
     }
     .btn-breath-start:hover::before { background: var(--red-glow); box-shadow: 2px 0 12px var(--red); }
-
-    /* When breathing is ON, start button dims */
     .btn-breath-start.breath-inactive {
       opacity: 0.3;
       pointer-events: none;
@@ -231,13 +227,11 @@
     }
     .btn-breath-stop::before { background: #333; }
     .btn-breath-stop:hover { background: #1a1a1a; border-color: #aaa; color: #ccc; }
-
-    /* When breathing is ON, stop button glows red */
     .btn-breath-stop.breath-active {
       border-color: var(--red-glow);
       color: var(--red-glow);
       background: #1a0000;
-      box-shadow: 0 0 16px rgba(200,0,0,0.35);
+      animation: breath-pulse 3s ease-in-out infinite;
     }
     .btn-breath-stop.breath-active::before { background: var(--red-glow); }
     .btn-breath-stop.breath-active:hover {
@@ -245,14 +239,9 @@
       box-shadow: 0 0 24px rgba(200,0,0,0.55);
       color: #fff;
     }
-
-    /* Breathing pulse animation on the stop button when active */
     @keyframes breath-pulse {
       0%,100% { box-shadow: 0 0 10px rgba(200,0,0,0.3); }
       50%      { box-shadow: 0 0 24px rgba(200,0,0,0.6); }
-    }
-    .btn-breath-stop.breath-active {
-      animation: breath-pulse 3s ease-in-out infinite;
     }
 
     .cmd-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
@@ -271,11 +260,13 @@
     .btn-no:hover { background: #2a0f00; border-color: var(--amber); box-shadow: 0 0 15px rgba(255,136,0,0.2); color: #fff; }
     .btn-no:hover::before { background: var(--amber); box-shadow: 2px 0 10px var(--amber); }
 
+    /* ── STATUS BAR ── */
     .status-bar {
       border: 1px solid var(--border); border-top: none;
       background: rgba(10,10,10,0.93);
       padding: 8px 20px;
       display: flex; align-items: center; justify-content: space-between;
+      gap: 12px;
     }
     .status-indicator { display: flex; align-items: center; gap: 8px; }
     .status-dot { width: 6px; height: 6px; border-radius: 50%; background: #333; transition: all 0.3s; }
@@ -286,14 +277,65 @@
     .status-text { font-size: 0.65rem; letter-spacing: 0.15em; color: var(--text-dim); }
     .status-text.connected { color: var(--green); }
     .status-text.disconnected { color: var(--red-glow); }
-    .status-readout { font-size: 0.6rem; letter-spacing: 0.1em; color: var(--text-dim); }
+    .status-readout { font-size: 0.6rem; letter-spacing: 0.1em; color: var(--text-dim); flex: 1; text-align: center; }
 
+    /* ── LOCAL AUDIO TOGGLE ── */
+    .local-audio-toggle {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      cursor: pointer;
+      user-select: none;
+      flex-shrink: 0;
+    }
+    .local-audio-toggle .toggle-label {
+      font-size: 0.58rem;
+      letter-spacing: 0.12em;
+      color: var(--text-dim);
+      font-family: 'Orbitron', sans-serif;
+      transition: color 0.2s;
+      white-space: nowrap;
+    }
+    .local-audio-toggle.on .toggle-label {
+      color: var(--amber);
+    }
+
+    /* pill switch */
+    .toggle-pill {
+      width: 32px;
+      height: 16px;
+      border-radius: 8px;
+      background: #1a1a1a;
+      border: 1px solid #333;
+      position: relative;
+      transition: background 0.2s, border-color 0.2s, box-shadow 0.2s;
+      flex-shrink: 0;
+    }
+    .toggle-pill::after {
+      content: '';
+      position: absolute;
+      top: 2px; left: 2px;
+      width: 10px; height: 10px;
+      border-radius: 50%;
+      background: #444;
+      transition: transform 0.2s, background 0.2s;
+    }
+    .local-audio-toggle.on .toggle-pill {
+      background: var(--amber-dim);
+      border-color: var(--amber);
+      box-shadow: 0 0 8px rgba(255,136,0,0.4);
+    }
+    .local-audio-toggle.on .toggle-pill::after {
+      transform: translateX(16px);
+      background: var(--amber);
+    }
+
+    /* ── MISC ── */
     .corner-tl,.corner-tr,.corner-bl,.corner-br { position:absolute; width:12px; height:12px; border-color:var(--red); }
     .corner-tl { top:-1px; left:-1px; border-top:2px solid; border-left:2px solid; }
     .corner-tr { top:-1px; right:-1px; border-top:2px solid; border-right:2px solid; }
     .corner-bl { bottom:-1px; left:-1px; border-bottom:2px solid; border-left:2px solid; }
     .corner-br { bottom:-1px; right:-1px; border-bottom:2px solid; border-right:2px solid; }
-
     .divider { height:1px; background:linear-gradient(90deg,transparent,var(--border-bright),transparent); margin:4px 0; }
   </style>
 </head>
@@ -386,6 +428,10 @@
       <span class="status-text disconnected" id="status">CONNECTING...</span>
     </div>
     <div class="status-readout" id="lastCmd">LAST CMD: —</div>
+    <div class="local-audio-toggle" id="localAudioToggle" onclick="toggleLocalAudio()">
+      <span class="toggle-label">LOCAL AUDIO</span>
+      <div class="toggle-pill"></div>
+    </div>
   </div>
 
 </div>
@@ -396,19 +442,14 @@
   const c = document.getElementById('stars-canvas');
   const x = c.getContext('2d');
   let stars = [];
-
   function resize(){ c.width = innerWidth; c.height = innerHeight; }
-
   function mk(){ return {
     x: Math.random()*c.width, y: Math.random()*c.height,
-    r: Math.random()*1.1+0.2,
-    a: Math.random(),
+    r: Math.random()*1.1+0.2, a: Math.random(),
     da: (Math.random()*0.004+0.001)*(Math.random()<0.5?1:-1),
     dx: (Math.random()-0.5)*0.03
   }; }
-
   function init(){ resize(); stars = Array.from({length:200},mk); }
-
   function draw(){
     x.clearRect(0,0,c.width,c.height);
     for(const s of stars){
@@ -424,19 +465,27 @@
     }
     requestAnimationFrame(draw);
   }
-
   addEventListener('resize', resize);
   init(); draw();
 })();
 
 // ── STATE ────────────────────────────────────────────────────────────────────
-let breathingOn = false;
+let breathingOn    = false;
+let localAudioOn   = false;
+let localAudioLoaded = false;
+
+const BREATH_VOL_NORMAL = 0.3;
+const BREATH_VOL_DUCKED = 0.15;
+
+// Local audio objects (only created after toggle is turned on)
+let localAudio = {};
+let localCurrent = null;
+let localBreathingPlaying = false;
 
 function updateBreathUI() {
-  const startBtn  = document.getElementById('btnBreathStart');
-  const stopBtn   = document.getElementById('btnBreathStop');
-  const section   = document.getElementById('breathSection');
-
+  const startBtn = document.getElementById('btnBreathStart');
+  const stopBtn  = document.getElementById('btnBreathStop');
+  const section  = document.getElementById('breathSection');
   if (breathingOn) {
     startBtn.classList.add('breath-inactive');
     stopBtn.classList.add('breath-active');
@@ -448,39 +497,139 @@ function updateBreathUI() {
   }
 }
 
+// ── LOCAL AUDIO ───────────────────────────────────────────────────────────────
+function toggleLocalAudio() {
+  localAudioOn = !localAudioOn;
+  const toggle = document.getElementById('localAudioToggle');
+  toggle.classList.toggle('on', localAudioOn);
+
+  if (localAudioOn && !localAudioLoaded) {
+    loadLocalAudio();
+  }
+
+  if (!localAudioOn) {
+    stopAllLocalAudio();
+  }
+}
+
+function loadLocalAudio() {
+  const map = {
+    PLAY_1:      'audio/youwillfalltothepowerofthedarkside.mp3',
+    PLAY_2:      'audio/0002.mp3',
+    BREATH:      'audio/breathing.mp3',
+    IHAVE_COME:  'audio/ihavecomeforyou.mp3',
+    IMPRESSIVE:  'audio/mostimpressive.mp3',
+    NO:          'audio/no.mp3',
+    YES:         'audio/yes.mp3',
+    WE_SHALL_SEE:'audio/weshallsee.mp3',
+    CONVENIENT:  'audio/howconvenient.mp3',
+    DELUSION:    'audio/itisdelusiontothinkyouractionshavehadanyconsequence.mp3',
+    WEAK:        'audio/soweak.mp3',
+    BURN:        'audio/thisarchivewillburn!.mp3',
+    ESCAPE:      'audio/youshallnotescapemethistime.mp3',
+    WASTE_TIME:  'audio/youwastetime.mp3',
+  };
+  for (const [cmd, src] of Object.entries(map)) {
+    const el = new Audio(src);
+    if (cmd === 'BREATH') { el.loop = true; el.volume = BREATH_VOL_NORMAL; }
+    localAudio[cmd] = el;
+  }
+  localAudioLoaded = true;
+}
+
+function stopAllLocalAudio() {
+  for (const el of Object.values(localAudio)) {
+    if (!el) continue;
+    el.pause();
+    el.currentTime = 0;
+    el.onended = null;
+  }
+  localCurrent = null;
+  localBreathingPlaying = false;
+}
+
+function stopLocalVoiceLine() {
+  for (const [key, el] of Object.entries(localAudio)) {
+    if (key === 'BREATH' || !el) continue;
+    el.pause();
+    el.currentTime = 0;
+    el.onended = null;
+  }
+  if (localCurrent && localCurrent !== localAudio['BREATH']) localCurrent = null;
+}
+
+function playLocal(cmd) {
+  if (!localAudioOn || !localAudioLoaded) return;
+
+  if (cmd === 'STOP') {
+    stopAllLocalAudio();
+    return;
+  }
+
+  if (cmd === 'BREATH') {
+    stopLocalVoiceLine();
+    const el = localAudio['BREATH'];
+    if (!el) return;
+    el.volume = BREATH_VOL_NORMAL;
+    el.loop = true;
+    el.currentTime = 0;
+    el.play().then(() => {
+      localBreathingPlaying = true;
+      localCurrent = el;
+    }).catch(() => {});
+    return;
+  }
+
+  const el = localAudio[cmd];
+  if (!el) return;
+
+  const wasBreathing = localBreathingPlaying;
+  stopLocalVoiceLine();
+
+  if (wasBreathing && localAudio['BREATH']) {
+    localAudio['BREATH'].volume = BREATH_VOL_DUCKED;
+  }
+
+  el.currentTime = 0;
+  el.play().then(() => {
+    localCurrent = el;
+    el.onended = () => {
+      localCurrent = localBreathingPlaying ? localAudio['BREATH'] : null;
+      if (wasBreathing && localAudio['BREATH']) {
+        localAudio['BREATH'].volume = BREATH_VOL_NORMAL;
+      }
+    };
+  }).catch(() => {
+    if (wasBreathing && localAudio['BREATH']) {
+      localAudio['BREATH'].volume = BREATH_VOL_NORMAL;
+    }
+  });
+}
+
 // ── WEBSOCKET ────────────────────────────────────────────────────────────────
 let ws;
 let reconnectAttempts = 0;
-let maxReconnectAttempts = 10;
+const maxReconnectAttempts = 10;
 let commandQueue = [];
 let heartbeatInterval = null;
 let isManualClose = false;
 let pendingCommands = new Map();
 let connectionHealth = {
-  lastPing: 0,
-  latency: 0,
-  commandsSent: 0,
-  commandsAcked: 0,
-  errors: 0
+  lastPing: 0, latency: 0,
+  commandsSent: 0, commandsAcked: 0, errors: 0
 };
 
-// Cooldown system
 let globalCooldown = 0;
-let globalCooldownDuration = 2000;
+const globalCooldownDuration = 2000;
 let activeProgressBar = null;
-
-// Retry system
-let maxRetries = 3;
-let retryDelay = 1000;
-
-// Audio durations
+const maxRetries = 3;
+const retryDelay = 1000;
 let audioDurations = {};
 
 function loadAudioDurations() {
   const audioFiles = {
     'BREATH':    'audio/breathing.mp3',
     'PLAY_1':    'audio/youwillfalltothepowerofthedarkside.mp3',
-    'PLAY_2':    'audio/0002.mp3',
     'IHAVE_COME':'audio/ihavecomeforyou.mp3',
     'IMPRESSIVE':'audio/mostimpressive.mp3',
     'NO':        'audio/no.mp3',
@@ -493,22 +642,16 @@ function loadAudioDurations() {
     'ESCAPE':    'audio/youshallnotescapemethistime.mp3',
     'WASTE_TIME':'audio/youwastetime.mp3'
   };
-
   for (const [cmd, path] of Object.entries(audioFiles)) {
     const tmp = new Audio(path);
-    tmp.addEventListener('loadedmetadata', () => {
-      audioDurations[cmd] = tmp.duration * 1000;
-    });
-    tmp.addEventListener('error', () => {
-      audioDurations[cmd] = 2000;
-    });
+    tmp.addEventListener('loadedmetadata', () => { audioDurations[cmd] = tmp.duration * 1000; });
+    tmp.addEventListener('error', () => { audioDurations[cmd] = 2000; });
   }
   audioDurations['STOP'] = 500;
 }
 
 function connect() {
   if (ws && (ws.readyState === WebSocket.CONNECTING || ws.readyState === WebSocket.OPEN)) return;
-
   isManualClose = false;
   const proto = location.protocol === 'https:' ? 'wss:' : 'ws:';
   ws = new WebSocket(`${proto}//${location.host}`);
@@ -522,7 +665,7 @@ function connect() {
     startHeartbeat();
   };
 
-  ws.onclose = (event) => {
+  ws.onclose = () => {
     stopHeartbeat();
     document.getElementById('statusDot').className = 'status-dot disconnected';
     const t = document.getElementById('status');
@@ -539,29 +682,23 @@ function connect() {
 
   ws.onerror = () => {
     document.getElementById('statusDot').className = 'status-dot disconnected';
-    const t = document.getElementById('status');
-    t.textContent = 'CONNECTION ERROR'; t.className = 'status-text disconnected';
+    document.getElementById('status').textContent = 'CONNECTION ERROR';
+    document.getElementById('status').className = 'status-text disconnected';
   };
 
   ws.onmessage = (event) => {
     try {
       const data = JSON.parse(event.data);
-      if (data.type === 'pong') {
-        connectionHealth.latency = Date.now() - connectionHealth.lastPing;
-        return;
-      }
+      if (data.type === 'pong') { connectionHealth.latency = Date.now() - connectionHealth.lastPing; return; }
       if (data.type === 'ack' && pendingCommands.has(data.id)) {
         const cmd = pendingCommands.get(data.id);
         if (cmd.timeoutId) clearTimeout(cmd.timeoutId);
         pendingCommands.delete(data.id);
         connectionHealth.commandsAcked++;
         clearErrorIndicator();
-        return;
       }
     } catch (e) {
-      if (event.data === 'pong') {
-        connectionHealth.latency = Date.now() - connectionHealth.lastPing;
-      }
+      if (event.data === 'pong') connectionHealth.latency = Date.now() - connectionHealth.lastPing;
     }
   };
 }
@@ -580,9 +717,7 @@ function stopHeartbeat() {
   if (heartbeatInterval) { clearInterval(heartbeatInterval); heartbeatInterval = null; }
 }
 
-window.addEventListener('online', () => {
-  if (!ws || ws.readyState === WebSocket.CLOSED) connect();
-});
+window.addEventListener('online', () => { if (!ws || ws.readyState === WebSocket.CLOSED) connect(); });
 window.addEventListener('offline', () => {
   document.getElementById('statusDot').className = 'status-dot disconnected';
   const t = document.getElementById('status');
@@ -591,17 +726,11 @@ window.addEventListener('offline', () => {
 });
 
 function updateConnectionQuality() {
-  const latency = connectionHealth.latency;
-  let quality = 'UNKNOWN';
-  if (latency > 0 && latency < 50)  quality = 'EXCELLENT';
-  else if (latency < 100)            quality = 'GOOD';
-  else if (latency < 200)            quality = 'FAIR';
-  else if (latency >= 200)           quality = 'POOR';
-  const successRate = connectionHealth.commandsSent > 0
-    ? Math.round((connectionHealth.commandsAcked / connectionHealth.commandsSent) * 100)
-    : 100;
-  document.getElementById('lastCmd').textContent =
-    `LATENCY: ${latency}ms | SUCCESS: ${successRate}% | QUALITY: ${quality}`;
+  const l = connectionHealth.latency;
+  const quality = l === 0 ? 'UNKNOWN' : l < 50 ? 'EXCELLENT' : l < 100 ? 'GOOD' : l < 200 ? 'FAIR' : 'POOR';
+  const rate = connectionHealth.commandsSent > 0
+    ? Math.round((connectionHealth.commandsAcked / connectionHealth.commandsSent) * 100) : 100;
+  document.getElementById('lastCmd').textContent = `LATENCY: ${l}ms | SUCCESS: ${rate}% | QUALITY: ${quality}`;
 }
 setInterval(updateConnectionQuality, 5000);
 
@@ -611,30 +740,23 @@ function send(cmd) {
       const cmdId = Date.now() + '_' + Math.random().toString(36).substr(2, 9);
       ws.send(JSON.stringify({ type: 'cmd', id: cmdId, command: cmd }));
       connectionHealth.commandsSent++;
-
       const entry = { command: cmd, timestamp: Date.now(), retryCount: 0 };
       pendingCommands.set(cmdId, entry);
-
-      const scheduleRetry = (id, attempt) => {
-        return setTimeout(() => {
-          if (!pendingCommands.has(id)) return;
-          const e = pendingCommands.get(id);
-          if (attempt < maxRetries && ws && ws.readyState === WebSocket.OPEN) {
-            e.retryCount++;
-            ws.send(JSON.stringify({ type: 'cmd', id, command: cmd, retry: true }));
-            connectionHealth.commandsSent++;
-            e.timeoutId = scheduleRetry(id, attempt + 1);
-          } else {
-            pendingCommands.delete(id);
-            connectionHealth.errors++;
-            showErrorIndicator(cmd);
-          }
-        }, attempt === 0 ? 3000 : retryDelay);
-      };
-
+      const scheduleRetry = (id, attempt) => setTimeout(() => {
+        if (!pendingCommands.has(id)) return;
+        const e = pendingCommands.get(id);
+        if (attempt < maxRetries && ws && ws.readyState === WebSocket.OPEN) {
+          e.retryCount++;
+          ws.send(JSON.stringify({ type: 'cmd', id, command: cmd, retry: true }));
+          connectionHealth.commandsSent++;
+          e.timeoutId = scheduleRetry(id, attempt + 1);
+        } else {
+          pendingCommands.delete(id);
+          connectionHealth.errors++;
+          showErrorIndicator(cmd);
+        }
+      }, attempt === 0 ? 3000 : retryDelay);
       entry.timeoutId = scheduleRetry(cmdId, 0);
-      pendingCommands.get(cmdId).timeoutId = entry.timeoutId;
-
     } catch (err) {
       commandQueue.push(cmd);
       connectionHealth.errors++;
@@ -648,13 +770,13 @@ function send(cmd) {
 function fireCmd(btn, cmd) {
   const now = Date.now();
   if (now < globalCooldown) {
-    btn.disabled = true;
-    btn.style.opacity = '0.6';
+    btn.disabled = true; btn.style.opacity = '0.6';
     setTimeout(() => { btn.disabled = false; btn.style.opacity = ''; }, 300);
     return;
   }
 
   send(cmd);
+  playLocal(cmd);  // ← play locally if toggle is on
   document.getElementById('lastCmd').textContent = `LAST CMD: ${cmd}`;
 
   const baseDuration = audioDurations[cmd] || globalCooldownDuration;
@@ -667,7 +789,6 @@ function fireCmd(btn, cmd) {
   setTimeout(() => btn.classList.remove('ripple'), 400);
 
   if (activeProgressBar) activeProgressBar.remove();
-
   const progressBar = document.createElement('div');
   progressBar.style.cssText = `
     position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
@@ -683,17 +804,12 @@ function fireCmd(btn, cmd) {
   progressBar.appendChild(progressFill);
   document.body.appendChild(progressBar);
   activeProgressBar = progressBar;
-
   const startTime = Date.now();
   const updateProgress = () => {
     const progress = Math.min((Date.now() - startTime) / cooldownTime, 1);
     progressFill.style.width = (progress * 100) + '%';
-    if (progress < 1) {
-      requestAnimationFrame(updateProgress);
-    } else {
-      progressBar.remove();
-      activeProgressBar = null;
-    }
+    if (progress < 1) requestAnimationFrame(updateProgress);
+    else { progressBar.remove(); activeProgressBar = null; }
   };
   requestAnimationFrame(updateProgress);
 }
@@ -721,8 +837,7 @@ function showErrorIndicator(command) {
 function clearErrorIndicator() {
   const el = document.getElementById('lastCmd');
   if (el.textContent.includes('COMMAND FAILED')) {
-    el.textContent = 'LAST CMD: —';
-    el.style.color = '';
+    el.textContent = 'LAST CMD: —'; el.style.color = '';
   }
 }
 
