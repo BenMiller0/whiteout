@@ -24,250 +24,82 @@
       --text-dim: #666655;
     }
 
+    /* ... [Keeping all original styles] ... */
     * { margin: 0; padding: 0; box-sizing: border-box; }
-
-    body {
-      background: #050508;
-      font-family: 'Share Tech Mono', monospace;
-      color: var(--text-main);
-      min-height: 100vh;
-      overflow-x: hidden;
-      position: relative;
-    }
-
-    body::before {
-      content: '';
-      position: fixed;
-      inset: 0;
-      background: repeating-linear-gradient(
-        0deg,
-        rgba(0,0,0,0.12) 0px,
-        rgba(0,0,0,0.12) 1px,
-        transparent 1px,
-        transparent 3px
-      );
-      pointer-events: none;
-      z-index: 999;
-    }
-
-    #stars-canvas {
-      position: fixed;
-      inset: 0;
-      pointer-events: none;
-      z-index: 0;
-    }
-
-    .outer-frame {
-      max-width: 820px;
-      margin: 0 auto;
-      padding: 16px;
-      position: relative;
-      z-index: 1;
-    }
-
-    .header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      border: 1px solid var(--border);
-      border-bottom: none;
-      background: var(--panel);
-      padding: 10px 20px;
-      position: relative;
-      overflow: hidden;
-    }
-    .header::after {
-      content: '';
-      position: absolute;
-      bottom: 0; left: 0; right: 0;
-      height: 2px;
-      background: linear-gradient(90deg, transparent, var(--red), var(--red), transparent);
-    }
-
-    .header-title {
-      font-family: 'Orbitron', sans-serif;
-      font-weight: 900;
-      font-size: 1.1rem;
-      letter-spacing: 0.3em;
-      color: var(--red-glow);
-      text-shadow: 0 0 20px var(--red), 0 0 40px rgba(200,0,0,0.3);
-    }
-
-    .imperial-crest svg {
-      filter: drop-shadow(0 0 6px rgba(204,0,0,0.7));
-      animation: crest-pulse 4s ease-in-out infinite;
-    }
-    @keyframes crest-pulse {
-      0%,100% { filter: drop-shadow(0 0 4px rgba(204,0,0,0.5)); opacity: 0.85; }
-      50%      { filter: drop-shadow(0 0 14px rgba(255,30,30,0.95)); opacity: 1; }
-    }
-
-    .panel-body {
-      border: 1px solid var(--border);
-      background: rgba(10,10,10,0.93);
-      padding: 24px;
-      display: flex;
-      flex-direction: column;
-      gap: 20px;
-    }
-
-    .section {
-      border: 1px solid var(--border);
-      background: var(--panel-mid);
-      position: relative;
-      transition: border-color 0.3s, box-shadow 0.3s;
-    }
-
-    .section-label {
-      position: absolute;
-      top: -10px; left: 14px;
-      background: var(--panel-mid);
-      padding: 0 8px;
-      font-size: 0.65rem;
-      letter-spacing: 0.2em;
-      color: var(--text-dim);
-      font-family: 'Orbitron', sans-serif;
-    }
-
+    body { background: #050508; font-family: 'Share Tech Mono', monospace; color: var(--text-main); min-height: 100vh; overflow-x: hidden; position: relative; }
+    body::before { content: ''; position: fixed; inset: 0; background: repeating-linear-gradient(0deg, rgba(0,0,0,0.12) 0px, rgba(0,0,0,0.12) 1px, transparent 1px, transparent 3px); pointer-events: none; z-index: 999; }
+    #stars-canvas { position: fixed; inset: 0; pointer-events: none; z-index: 0; }
+    .outer-frame { max-width: 820px; margin: 0 auto; padding: 16px; position: relative; z-index: 1; }
+    .header { display: flex; align-items: center; justify-content: space-between; border: 1px solid var(--border); border-bottom: none; background: var(--panel); padding: 10px 20px; position: relative; overflow: hidden; }
+    .header::after { content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 2px; background: linear-gradient(90deg, transparent, var(--red), var(--red), transparent); }
+    .header-title { font-family: 'Orbitron', sans-serif; font-weight: 900; font-size: 1.1rem; letter-spacing: 0.3em; color: var(--red-glow); text-shadow: 0 0 20px var(--red), 0 0 40px rgba(200,0,0,0.3); }
+    .imperial-crest svg { filter: drop-shadow(0 0 6px rgba(204,0,0,0.7)); animation: crest-pulse 4s ease-in-out infinite; }
+    @keyframes crest-pulse { 0%,100% { filter: drop-shadow(0 0 4px rgba(204,0,0,0.5)); opacity: 0.85; } 50% { filter: drop-shadow(0 0 14px rgba(255,30,30,0.95)); opacity: 1; } }
+    .panel-body { border: 1px solid var(--border); background: rgba(10,10,10,0.93); padding: 24px; display: flex; flex-direction: column; gap: 20px; }
+    .section { border: 1px solid var(--border); background: var(--panel-mid); position: relative; transition: border-color 0.3s, box-shadow 0.3s; }
+    .section-label { position: absolute; top: -10px; left: 14px; background: var(--panel-mid); padding: 0 8px; font-size: 0.65rem; letter-spacing: 0.2em; color: var(--text-dim); font-family: 'Orbitron', sans-serif; }
     .section-inner { padding: 20px 16px 16px; }
-
-    .section-breath {
-      border-color: var(--red-dim);
-      background: linear-gradient(160deg, #0f0000, #0d0d0d);
-      transition: border-color 0.3s, box-shadow 0.3s;
-    }
-    .section-breath .section-label {
-      background: #0f0000;
-      color: var(--red-glow);
-    }
-    .section-breath.breathing-active {
-      border-color: var(--red-glow);
-      box-shadow: 0 0 28px rgba(200,0,0,0.25), inset 0 0 20px rgba(200,0,0,0.05);
-    }
-
-    .breath-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 12px;
-    }
-
-    /* Buttons */
-    .btn {
-      font-family: 'Share Tech Mono', monospace;
-      font-size: 0.75rem;
-      letter-spacing: 0.1em;
-      padding: 12px 10px;
-      border: 1px solid var(--border-bright);
-      background: var(--panel-light);
-      color: var(--text-main);
-      cursor: pointer;
-      text-transform: uppercase;
-      position: relative;
-      transition: all 0.2s;
-      text-align: center;
-      line-height: 1.3;
-      overflow: hidden;
-    }
-
-    .btn::before {
-      content: '';
-      position: absolute;
-      top: 0; left: 0;
-      width: 3px; height: 100%;
-      background: var(--border-bright);
-      transition: all 0.15s;
-    }
-
-    .btn::after {
-      content: '';
-      position: absolute;
-      inset: 0;
-      background: radial-gradient(circle at 50% 50%, rgba(255,255,255,0.15) 0%, transparent 70%);
-      opacity: 0;
-      transition: opacity 0.4s;
-    }
+    .section-breath { border-color: var(--red-dim); background: linear-gradient(160deg, #0f0000, #0d0d0d); transition: border-color 0.3s, box-shadow 0.3s; }
+    .section-breath .section-label { background: #0f0000; color: var(--red-glow); }
+    .section-breath.breathing-active { border-color: var(--red-glow); box-shadow: 0 0 28px rgba(200,0,0,0.25), inset 0 0 20px rgba(200,0,0,0.05); }
+    .breath-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .btn { font-family: 'Share Tech Mono', monospace; font-size: 0.75rem; letter-spacing: 0.1em; padding: 12px 10px; border: 1px solid var(--border-bright); background: var(--panel-light); color: var(--text-main); cursor: pointer; text-transform: uppercase; position: relative; transition: all 0.2s; text-align: center; line-height: 1.3; overflow: hidden; }
+    .btn::before { content: ''; position: absolute; top: 0; left: 0; width: 3px; height: 100%; background: var(--border-bright); transition: all 0.15s; }
+    .btn::after { content: ''; position: absolute; inset: 0; background: radial-gradient(circle at 50% 50%, rgba(255,255,255,0.15) 0%, transparent 70%); opacity: 0; transition: opacity 0.4s; }
     .btn.ripple::after { opacity: 1; transition: opacity 0s; }
-
     .btn:hover { background: #222; border-color: #888; color: #fff; }
     .btn:hover::before { background: #fff; box-shadow: 2px 0 8px rgba(255,255,255,0.5); }
     .btn:active { transform: scale(0.98); }
-
-    .btn-breath-start {
-      border-color: var(--red-dim);
-      color: var(--red-glow);
-      font-family: 'Orbitron', sans-serif;
-      font-weight: 700;
-      font-size: 0.8rem;
-      letter-spacing: 0.15em;
-      padding: 18px 10px;
-      background: #0a0000;
-      transition: all 0.2s;
-    }
+    .btn-breath-start { border-color: var(--red-dim); color: var(--red-glow); font-family: 'Orbitron', sans-serif; font-weight: 700; font-size: 0.8rem; letter-spacing: 0.15em; padding: 18px 10px; background: #0a0000; transition: all 0.2s; }
     .btn-breath-start::before { background: var(--red-dim); }
-    .btn-breath-start:hover {
-      background: #1a0000; border-color: var(--red-glow); color: #fff;
-      box-shadow: 0 0 20px rgba(200,0,0,0.4), inset 0 0 20px rgba(200,0,0,0.1);
-    }
+    .btn-breath-start:hover { background: #1a0000; border-color: var(--red-glow); color: #fff; box-shadow: 0 0 20px rgba(200,0,0,0.4), inset 0 0 20px rgba(200,0,0,0.1); }
     .btn-breath-start:hover::before { background: var(--red-glow); box-shadow: 2px 0 12px var(--red); }
-    .btn-breath-start.breath-inactive {
-      opacity: 0.3;
-      pointer-events: none;
-    }
-
-    .btn-breath-stop {
-      border-color: #222;
-      color: #555;
-      font-family: 'Orbitron', sans-serif;
-      font-weight: 700;
-      font-size: 0.8rem;
-      letter-spacing: 0.15em;
-      padding: 18px 10px;
-      background: #0a0a0a;
-      transition: all 0.2s;
-    }
+    .btn-breath-start.breath-inactive { opacity: 0.3; pointer-events: none; }
+    .btn-breath-stop { border-color: #222; color: #555; font-family: 'Orbitron', sans-serif; font-weight: 700; font-size: 0.8rem; letter-spacing: 0.15em; padding: 18px 10px; background: #0a0a0a; transition: all 0.2s; }
     .btn-breath-stop::before { background: #333; }
     .btn-breath-stop:hover { background: #1a1a1a; border-color: #aaa; color: #ccc; }
-    .btn-breath-stop.breath-active {
-      border-color: var(--red-glow);
-      color: var(--red-glow);
-      background: #1a0000;
-      animation: breath-pulse 3s ease-in-out infinite;
-    }
+    .btn-breath-stop.breath-active { border-color: var(--red-glow); color: var(--red-glow); background: #1a0000; box-shadow: 0 0 16px rgba(200,0,0,0.35); }
     .btn-breath-stop.breath-active::before { background: var(--red-glow); }
-    .btn-breath-stop.breath-active:hover {
-      background: #2a0000;
-      box-shadow: 0 0 24px rgba(200,0,0,0.55);
-      color: #fff;
-    }
-    @keyframes breath-pulse {
-      0%,100% { box-shadow: 0 0 10px rgba(200,0,0,0.3); }
-      50%      { box-shadow: 0 0 24px rgba(200,0,0,0.6); }
-    }
-
+    .btn-breath-stop.breath-active:hover { background: #2a0000; box-shadow: 0 0 24px rgba(200,0,0,0.55); color: #fff; }
+    @keyframes breath-pulse { 0%,100% { box-shadow: 0 0 10px rgba(200,0,0,0.3); } 50% { box-shadow: 0 0 24px rgba(200,0,0,0.6); } }
+    .btn-breath-stop.breath-active { animation: breath-pulse 3s ease-in-out infinite; }
     .cmd-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
     .cmd-grid .btn-wide { grid-column: span 2; }
     .btn-cmd { font-size: 0.7rem; letter-spacing: 0.08em; padding: 14px 8px; }
-
     .yn-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-
     .btn-yes { color: var(--green); border-color: var(--green-dim); background: #001a0d; }
     .btn-yes::before { background: var(--green-dim); }
     .btn-yes:hover { background: #002a14; border-color: var(--green); box-shadow: 0 0 15px rgba(0,255,136,0.2); color: #fff; }
     .btn-yes:hover::before { background: var(--green); box-shadow: 2px 0 10px var(--green); }
-
     .btn-no { color: var(--amber); border-color: var(--amber-dim); background: #1a0800; }
     .btn-no::before { background: var(--amber-dim); }
     .btn-no:hover { background: #2a0f00; border-color: var(--amber); box-shadow: 0 0 15px rgba(255,136,0,0.2); color: #fff; }
     .btn-no:hover::before { background: var(--amber); box-shadow: 2px 0 10px var(--amber); }
 
-    /* ── STATUS BAR ── */
-    .status-bar {
-      border: 1px solid var(--border); border-top: none;
-      background: rgba(10,10,10,0.93);
-      padding: 8px 20px;
-      display: flex; align-items: center; justify-content: space-between;
-      gap: 12px;
+    /* New Toggle Style */
+    .audio-toggle-container {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 5px 10px;
+      border: 1px solid var(--border);
+      background: var(--panel-mid);
+      cursor: pointer;
+      user-select: none;
     }
+    .audio-toggle-container:hover { border-color: var(--amber); }
+    .toggle-led {
+      width: 8px; height: 8px; border-radius: 50%;
+      background: #222; border: 1px solid #444;
+      transition: all 0.3s;
+    }
+    .audio-toggle-container.active .toggle-led {
+      background: var(--amber); box-shadow: 0 0 8px var(--amber);
+    }
+    .toggle-label { font-size: 0.6rem; letter-spacing: 0.1em; color: var(--text-dim); }
+    .audio-toggle-container.active .toggle-label { color: var(--amber); }
+
+    .status-bar { border: 1px solid var(--border); border-top: none; background: rgba(10,10,10,0.93); padding: 8px 20px; display: flex; align-items: center; justify-content: space-between; gap: 15px; }
     .status-indicator { display: flex; align-items: center; gap: 8px; }
     .status-dot { width: 6px; height: 6px; border-radius: 50%; background: #333; transition: all 0.3s; }
     .status-dot.connected { background: var(--green); box-shadow: 0 0 8px var(--green); animation: pd 3s ease-in-out infinite; }
@@ -277,60 +109,7 @@
     .status-text { font-size: 0.65rem; letter-spacing: 0.15em; color: var(--text-dim); }
     .status-text.connected { color: var(--green); }
     .status-text.disconnected { color: var(--red-glow); }
-    .status-readout { font-size: 0.6rem; letter-spacing: 0.1em; color: var(--text-dim); flex: 1; text-align: center; }
-
-    /* ── LOCAL AUDIO TOGGLE ── */
-    .local-audio-toggle {
-      display: flex;
-      align-items: center;
-      gap: 7px;
-      cursor: pointer;
-      user-select: none;
-      flex-shrink: 0;
-    }
-    .local-audio-toggle .toggle-label {
-      font-size: 0.58rem;
-      letter-spacing: 0.12em;
-      color: var(--text-dim);
-      font-family: 'Orbitron', sans-serif;
-      transition: color 0.2s;
-      white-space: nowrap;
-    }
-    .local-audio-toggle.on .toggle-label {
-      color: var(--amber);
-    }
-
-    /* pill switch */
-    .toggle-pill {
-      width: 32px;
-      height: 16px;
-      border-radius: 8px;
-      background: #1a1a1a;
-      border: 1px solid #333;
-      position: relative;
-      transition: background 0.2s, border-color 0.2s, box-shadow 0.2s;
-      flex-shrink: 0;
-    }
-    .toggle-pill::after {
-      content: '';
-      position: absolute;
-      top: 2px; left: 2px;
-      width: 10px; height: 10px;
-      border-radius: 50%;
-      background: #444;
-      transition: transform 0.2s, background 0.2s;
-    }
-    .local-audio-toggle.on .toggle-pill {
-      background: var(--amber-dim);
-      border-color: var(--amber);
-      box-shadow: 0 0 8px rgba(255,136,0,0.4);
-    }
-    .local-audio-toggle.on .toggle-pill::after {
-      transform: translateX(16px);
-      background: var(--amber);
-    }
-
-    /* ── MISC ── */
+    .status-readout { font-size: 0.6rem; letter-spacing: 0.1em; color: var(--text-dim); flex: 1; text-align: right; }
     .corner-tl,.corner-tr,.corner-bl,.corner-br { position:absolute; width:12px; height:12px; border-color:var(--red); }
     .corner-tl { top:-1px; left:-1px; border-top:2px solid; border-left:2px solid; }
     .corner-tr { top:-1px; right:-1px; border-top:2px solid; border-right:2px solid; }
@@ -344,7 +123,6 @@
 <canvas id="stars-canvas"></canvas>
 
 <div class="outer-frame">
-
   <div class="header">
     <div class="header-title">VADER CONTROL INTERFACE</div>
     <div class="imperial-crest">
@@ -353,39 +131,24 @@
         <circle cx="30" cy="30" r="20" fill="none" stroke="#cc0000" stroke-width="0.8" opacity="0.6"/>
         <circle cx="30" cy="30" r="3.5" fill="#cc0000"/>
         <g stroke="#cc0000" stroke-width="1.2">
-          <line x1="30" y1="2" x2="30" y2="10"/>
-          <line x1="30" y1="50" x2="30" y2="58"/>
-          <line x1="2" y1="30" x2="10" y2="30"/>
-          <line x1="50" y1="30" x2="58" y2="30"/>
-          <line x1="9.4" y1="9.4" x2="15.5" y2="15.5"/>
-          <line x1="44.5" y1="44.5" x2="50.6" y2="50.6"/>
-          <line x1="50.6" y1="9.4" x2="44.5" y2="15.5"/>
-          <line x1="15.5" y1="44.5" x2="9.4" y2="50.6"/>
+          <line x1="30" y1="2" x2="30" y2="10"/><line x1="30" y1="50" x2="30" y2="58"/><line x1="2" y1="30" x2="10" y2="30"/><line x1="50" y1="30" x2="58" y2="30"/><line x1="9.4" y1="9.4" x2="15.5" y2="15.5"/><line x1="44.5" y1="44.5" x2="50.6" y2="50.6"/><line x1="50.6" y1="9.4" x2="44.5" y2="15.5"/><line x1="15.5" y1="44.5" x2="9.4" y2="50.6"/>
         </g>
         <g fill="#cc0000" opacity="0.85">
-          <path d="M30 3 A27 27 0 0 1 49.1 13.5 L44.5 15.5 A22 22 0 0 0 30 10 Z"/>
-          <path d="M49.1 46.5 A27 27 0 0 1 30 57 L30 50 A22 22 0 0 0 44.5 44.5 Z"/>
-          <path d="M10.9 46.5 A27 27 0 0 1 3 30 L10 30 A22 22 0 0 0 15.5 44.5 Z"/>
-          <path d="M49.1 13.5 A27 27 0 0 1 57 30 L50 30 A22 22 0 0 0 44.5 15.5 Z"/>
+          <path d="M30 3 A27 27 0 0 1 49.1 13.5 L44.5 15.5 A22 22 0 0 0 30 10 Z"/><path d="M49.1 46.5 A27 27 0 0 1 30 57 L30 50 A22 22 0 0 0 44.5 44.5 Z"/><path d="M10.9 46.5 A27 27 0 0 1 3 30 L10 30 A22 22 0 0 0 15.5 44.5 Z"/><path d="M49.1 13.5 A27 27 0 0 1 57 30 L50 30 A22 22 0 0 0 44.5 15.5 Z"/>
         </g>
       </svg>
     </div>
   </div>
 
   <div class="panel-body">
-
     <div class="section section-breath" id="breathSection" style="position:relative;">
       <div class="corner-tl"></div><div class="corner-tr"></div>
       <div class="corner-bl"></div><div class="corner-br"></div>
       <div class="section-label">// RESPIRATION CONTROL</div>
       <div class="section-inner">
         <div class="breath-grid">
-          <button class="btn btn-breath-start" id="btnBreathStart" onclick="startBreathing(this)">
-            ▶ INITIATE<br>BREATHING
-          </button>
-          <button class="btn btn-breath-stop" id="btnBreathStop" onclick="stopBreathing(this)">
-            ■ TERMINATE<br>BREATHING
-          </button>
+          <button class="btn btn-breath-start" id="btnBreathStart" onclick="startBreathing(this)">▶ INITIATE<br>BREATHING</button>
+          <button class="btn btn-breath-stop" id="btnBreathStop" onclick="stopBreathing(this)">■ TERMINATE<br>BREATHING</button>
         </div>
       </div>
     </div>
@@ -419,7 +182,6 @@
         </div>
       </div>
     </div>
-
   </div>
 
   <div class="status-bar">
@@ -427,13 +189,15 @@
       <div class="status-dot disconnected" id="statusDot"></div>
       <span class="status-text disconnected" id="status">CONNECTING...</span>
     </div>
-    <div class="status-readout" id="lastCmd">LAST CMD: —</div>
-    <div class="local-audio-toggle" id="localAudioToggle" onclick="toggleLocalAudio()">
+    
+    <!-- Local Audio Toggle -->
+    <div class="audio-toggle-container" id="localAudioToggle" onclick="toggleLocalAudio()">
+      <div class="toggle-led"></div>
       <span class="toggle-label">LOCAL AUDIO</span>
-      <div class="toggle-pill"></div>
     </div>
-  </div>
 
+    <div class="status-readout" id="lastCmd">LAST CMD: —</div>
+  </div>
 </div>
 
 <script>
@@ -443,49 +207,59 @@
   const x = c.getContext('2d');
   let stars = [];
   function resize(){ c.width = innerWidth; c.height = innerHeight; }
-  function mk(){ return {
-    x: Math.random()*c.width, y: Math.random()*c.height,
-    r: Math.random()*1.1+0.2, a: Math.random(),
-    da: (Math.random()*0.004+0.001)*(Math.random()<0.5?1:-1),
-    dx: (Math.random()-0.5)*0.03
-  }; }
+  function mk(){ return { x: Math.random()*c.width, y: Math.random()*c.height, r: Math.random()*1.1+0.2, a: Math.random(), da: (Math.random()*0.004+0.001)*(Math.random()<0.5?1:-1), dx: (Math.random()-0.5)*0.03 }; }
   function init(){ resize(); stars = Array.from({length:200},mk); }
   function draw(){
     x.clearRect(0,0,c.width,c.height);
     for(const s of stars){
-      s.a += s.da;
-      if(s.a<=0||s.a>=1) s.da*=-1;
-      s.x += s.dx;
-      if(s.x<0) s.x=c.width;
-      if(s.x>c.width) s.x=0;
-      x.beginPath();
-      x.arc(s.x,s.y,s.r,0,Math.PI*2);
-      x.fillStyle = `rgba(210,210,230,${s.a*0.65})`;
-      x.fill();
+      s.a += s.da; if(s.a<=0||s.a>=1) s.da*=-1;
+      s.x += s.dx; if(s.x<0) s.x=c.width; if(s.x>c.width) s.x=0;
+      x.beginPath(); x.arc(s.x,s.y,s.r,0,Math.PI*2);
+      x.fillStyle = `rgba(210,210,230,${s.a*0.65})`; x.fill();
     }
     requestAnimationFrame(draw);
   }
-  addEventListener('resize', resize);
-  init(); draw();
+  addEventListener('resize', resize); init(); draw();
 })();
 
 // ── STATE ────────────────────────────────────────────────────────────────────
-let breathingOn    = false;
-let localAudioOn   = false;
-let localAudioLoaded = false;
+let breathingOn = false;
+let localAudioEnabled = false;
+let currentLocalAudio = null;
+let breathLocalAudio = null;
 
-const BREATH_VOL_NORMAL = 0.3;
-const BREATH_VOL_DUCKED = 0.15;
+const audioFiles = {
+  'BREATH':     'audio/breathing.mp3',
+  'PLAY_1':     'audio/youwillfalltothepowerofthedarkside.mp3',
+  'IHAVE_COME': 'audio/ihavecomeforyou.mp3',
+  'IMPRESSIVE': 'audio/mostimpressive.mp3',
+  'NO':         'audio/no.mp3',
+  'YES':        'audio/yes.mp3',
+  'WE_SHALL_SEE':'audio/weshallsee.mp3',
+  'CONVENIENT': 'audio/howconvenient.mp3',
+  'DELUSION':   'audio/itisdelusiontothinkyouractionshavehadanyconsequence.mp3',
+  'WEAK':       'audio/soweak.mp3',
+  'BURN':       'audio/thisarchivewillburn!.mp3',
+  'ESCAPE':     'audio/youshallnotescapemethistime.mp3',
+  'WASTE_TIME': 'audio/youwastetime.mp3'
+};
 
-// Local audio objects (only created after toggle is turned on)
-let localAudio = {};
-let localCurrent = null;
-let localBreathingPlaying = false;
+function toggleLocalAudio() {
+  localAudioEnabled = !localAudioEnabled;
+  document.getElementById('localAudioToggle').classList.toggle('active', localAudioEnabled);
+  
+  // Stop sounds immediately if turned off
+  if (!localAudioEnabled) {
+    if (currentLocalAudio) { currentLocalAudio.pause(); currentLocalAudio = null; }
+    if (breathLocalAudio) { breathLocalAudio.pause(); breathLocalAudio = null; }
+  }
+}
 
 function updateBreathUI() {
-  const startBtn = document.getElementById('btnBreathStart');
-  const stopBtn  = document.getElementById('btnBreathStop');
-  const section  = document.getElementById('breathSection');
+  const startBtn  = document.getElementById('btnBreathStart');
+  const stopBtn   = document.getElementById('btnBreathStop');
+  const section   = document.getElementById('breathSection');
+
   if (breathingOn) {
     startBtn.classList.add('breath-inactive');
     stopBtn.classList.add('breath-active');
@@ -497,151 +271,23 @@ function updateBreathUI() {
   }
 }
 
-// ── LOCAL AUDIO ───────────────────────────────────────────────────────────────
-function toggleLocalAudio() {
-  localAudioOn = !localAudioOn;
-  const toggle = document.getElementById('localAudioToggle');
-  toggle.classList.toggle('on', localAudioOn);
-
-  if (localAudioOn && !localAudioLoaded) {
-    loadLocalAudio();
-  }
-
-  if (!localAudioOn) {
-    stopAllLocalAudio();
-  }
-}
-
-function loadLocalAudio() {
-  const map = {
-    PLAY_1:      'audio/youwillfalltothepowerofthedarkside.mp3',
-    PLAY_2:      'audio/0002.mp3',
-    BREATH:      'audio/breathing.mp3',
-    IHAVE_COME:  'audio/ihavecomeforyou.mp3',
-    IMPRESSIVE:  'audio/mostimpressive.mp3',
-    NO:          'audio/no.mp3',
-    YES:         'audio/yes.mp3',
-    WE_SHALL_SEE:'audio/weshallsee.mp3',
-    CONVENIENT:  'audio/howconvenient.mp3',
-    DELUSION:    'audio/itisdelusiontothinkyouractionshavehadanyconsequence.mp3',
-    WEAK:        'audio/soweak.mp3',
-    BURN:        'audio/thisarchivewillburn!.mp3',
-    ESCAPE:      'audio/youshallnotescapemethistime.mp3',
-    WASTE_TIME:  'audio/youwastetime.mp3',
-  };
-  for (const [cmd, src] of Object.entries(map)) {
-    const el = new Audio(src);
-    if (cmd === 'BREATH') { el.loop = true; el.volume = BREATH_VOL_NORMAL; }
-    localAudio[cmd] = el;
-  }
-  localAudioLoaded = true;
-}
-
-function stopAllLocalAudio() {
-  for (const el of Object.values(localAudio)) {
-    if (!el) continue;
-    el.pause();
-    el.currentTime = 0;
-    el.onended = null;
-  }
-  localCurrent = null;
-  localBreathingPlaying = false;
-}
-
-function stopLocalVoiceLine() {
-  for (const [key, el] of Object.entries(localAudio)) {
-    if (key === 'BREATH' || !el) continue;
-    el.pause();
-    el.currentTime = 0;
-    el.onended = null;
-  }
-  if (localCurrent && localCurrent !== localAudio['BREATH']) localCurrent = null;
-}
-
-function playLocal(cmd) {
-  if (!localAudioOn || !localAudioLoaded) return;
-
-  if (cmd === 'STOP') {
-    stopAllLocalAudio();
-    return;
-  }
-
-  if (cmd === 'BREATH') {
-    stopLocalVoiceLine();
-    const el = localAudio['BREATH'];
-    if (!el) return;
-    el.volume = BREATH_VOL_NORMAL;
-    el.loop = true;
-    el.currentTime = 0;
-    el.play().then(() => {
-      localBreathingPlaying = true;
-      localCurrent = el;
-    }).catch(() => {});
-    return;
-  }
-
-  const el = localAudio[cmd];
-  if (!el) return;
-
-  const wasBreathing = localBreathingPlaying;
-  stopLocalVoiceLine();
-
-  if (wasBreathing && localAudio['BREATH']) {
-    localAudio['BREATH'].volume = BREATH_VOL_DUCKED;
-  }
-
-  el.currentTime = 0;
-  el.play().then(() => {
-    localCurrent = el;
-    el.onended = () => {
-      localCurrent = localBreathingPlaying ? localAudio['BREATH'] : null;
-      if (wasBreathing && localAudio['BREATH']) {
-        localAudio['BREATH'].volume = BREATH_VOL_NORMAL;
-      }
-    };
-  }).catch(() => {
-    if (wasBreathing && localAudio['BREATH']) {
-      localAudio['BREATH'].volume = BREATH_VOL_NORMAL;
-    }
-  });
-}
-
 // ── WEBSOCKET ────────────────────────────────────────────────────────────────
 let ws;
 let reconnectAttempts = 0;
-const maxReconnectAttempts = 10;
+let maxReconnectAttempts = 10;
 let commandQueue = [];
 let heartbeatInterval = null;
 let isManualClose = false;
 let pendingCommands = new Map();
-let connectionHealth = {
-  lastPing: 0, latency: 0,
-  commandsSent: 0, commandsAcked: 0, errors: 0
-};
-
+let connectionHealth = { lastPing: 0, latency: 0, commandsSent: 0, commandsAcked: 0, errors: 0 };
 let globalCooldown = 0;
-const globalCooldownDuration = 2000;
+let globalCooldownDuration = 2000;
 let activeProgressBar = null;
-const maxRetries = 3;
-const retryDelay = 1000;
+let maxRetries = 3;
+let retryDelay = 1000;
 let audioDurations = {};
 
 function loadAudioDurations() {
-  const audioFiles = {
-    'BREATH':    'audio/breathing.mp3',
-    'PLAY_1':    'audio/youwillfalltothepowerofthedarkside.mp3',
-    'IHAVE_COME':'audio/ihavecomeforyou.mp3',
-    'IMPRESSIVE':'audio/mostimpressive.mp3',
-    'NO':        'audio/no.mp3',
-    'YES':       'audio/yes.mp3',
-    'WE_SHALL_SEE':'audio/weshallsee.mp3',
-    'CONVENIENT':'audio/howconvenient.mp3',
-    'DELUSION':  'audio/itisdelusiontothinkyouractionshavehadanyconsequence.mp3',
-    'WEAK':      'audio/soweak.mp3',
-    'BURN':      'audio/thisarchivewillburn!.mp3',
-    'ESCAPE':    'audio/youshallnotescapemethistime.mp3',
-    'WASTE_TIME':'audio/youwastetime.mp3'
-  };
   for (const [cmd, path] of Object.entries(audioFiles)) {
     const tmp = new Audio(path);
     tmp.addEventListener('loadedmetadata', () => { audioDurations[cmd] = tmp.duration * 1000; });
@@ -655,7 +301,6 @@ function connect() {
   isManualClose = false;
   const proto = location.protocol === 'https:' ? 'wss:' : 'ws:';
   ws = new WebSocket(`${proto}//${location.host}`);
-
   ws.onopen = () => {
     reconnectAttempts = 0;
     document.getElementById('statusDot').className = 'status-dot connected';
@@ -664,28 +309,17 @@ function connect() {
     while (commandQueue.length > 0) send(commandQueue.shift());
     startHeartbeat();
   };
-
   ws.onclose = () => {
     stopHeartbeat();
     document.getElementById('statusDot').className = 'status-dot disconnected';
     const t = document.getElementById('status');
     if (!isManualClose && reconnectAttempts < maxReconnectAttempts) {
-      reconnectAttempts++;
-      t.textContent = 'LINK LOST — RETRY...'; t.className = 'status-text disconnected';
+      reconnectAttempts++; t.textContent = 'LINK LOST — RETRY...'; t.className = 'status-text disconnected';
       setTimeout(connect, 2000);
-    } else if (reconnectAttempts >= maxReconnectAttempts) {
-      t.textContent = 'MAX RECONNECT ATTEMPTS REACHED'; t.className = 'status-text disconnected';
     } else {
       t.textContent = 'CONNECTION CLOSED'; t.className = 'status-text disconnected';
     }
   };
-
-  ws.onerror = () => {
-    document.getElementById('statusDot').className = 'status-dot disconnected';
-    document.getElementById('status').textContent = 'CONNECTION ERROR';
-    document.getElementById('status').className = 'status-text disconnected';
-  };
-
   ws.onmessage = (event) => {
     try {
       const data = JSON.parse(event.data);
@@ -693,13 +327,10 @@ function connect() {
       if (data.type === 'ack' && pendingCommands.has(data.id)) {
         const cmd = pendingCommands.get(data.id);
         if (cmd.timeoutId) clearTimeout(cmd.timeoutId);
-        pendingCommands.delete(data.id);
-        connectionHealth.commandsAcked++;
-        clearErrorIndicator();
+        pendingCommands.delete(data.id); connectionHealth.commandsAcked++;
+        clearErrorIndicator(); return;
       }
-    } catch (e) {
-      if (event.data === 'pong') connectionHealth.latency = Date.now() - connectionHealth.lastPing;
-    }
+    } catch (e) {}
   };
 }
 
@@ -712,27 +343,7 @@ function startHeartbeat() {
     }
   }, 30000);
 }
-
-function stopHeartbeat() {
-  if (heartbeatInterval) { clearInterval(heartbeatInterval); heartbeatInterval = null; }
-}
-
-window.addEventListener('online', () => { if (!ws || ws.readyState === WebSocket.CLOSED) connect(); });
-window.addEventListener('offline', () => {
-  document.getElementById('statusDot').className = 'status-dot disconnected';
-  const t = document.getElementById('status');
-  t.textContent = 'NETWORK OFFLINE'; t.className = 'status-text disconnected';
-  if (ws) ws.close();
-});
-
-function updateConnectionQuality() {
-  const l = connectionHealth.latency;
-  const quality = l === 0 ? 'UNKNOWN' : l < 50 ? 'EXCELLENT' : l < 100 ? 'GOOD' : l < 200 ? 'FAIR' : 'POOR';
-  const rate = connectionHealth.commandsSent > 0
-    ? Math.round((connectionHealth.commandsAcked / connectionHealth.commandsSent) * 100) : 100;
-  document.getElementById('lastCmd').textContent = `LATENCY: ${l}ms | SUCCESS: ${rate}% | QUALITY: ${quality}`;
-}
-setInterval(updateConnectionQuality, 5000);
+function stopHeartbeat() { if (heartbeatInterval) { clearInterval(heartbeatInterval); heartbeatInterval = null; } }
 
 function send(cmd) {
   if (ws && ws.readyState === WebSocket.OPEN) {
@@ -742,29 +353,21 @@ function send(cmd) {
       connectionHealth.commandsSent++;
       const entry = { command: cmd, timestamp: Date.now(), retryCount: 0 };
       pendingCommands.set(cmdId, entry);
-      const scheduleRetry = (id, attempt) => setTimeout(() => {
-        if (!pendingCommands.has(id)) return;
-        const e = pendingCommands.get(id);
-        if (attempt < maxRetries && ws && ws.readyState === WebSocket.OPEN) {
-          e.retryCount++;
-          ws.send(JSON.stringify({ type: 'cmd', id, command: cmd, retry: true }));
-          connectionHealth.commandsSent++;
-          e.timeoutId = scheduleRetry(id, attempt + 1);
-        } else {
-          pendingCommands.delete(id);
-          connectionHealth.errors++;
-          showErrorIndicator(cmd);
-        }
-      }, attempt === 0 ? 3000 : retryDelay);
+      const scheduleRetry = (id, attempt) => {
+        return setTimeout(() => {
+          if (!pendingCommands.has(id)) return;
+          const e = pendingCommands.get(id);
+          if (attempt < maxRetries && ws && ws.readyState === WebSocket.OPEN) {
+            e.retryCount++; ws.send(JSON.stringify({ type: 'cmd', id, command: cmd, retry: true }));
+            connectionHealth.commandsSent++; e.timeoutId = scheduleRetry(id, attempt + 1);
+          } else {
+            pendingCommands.delete(id); connectionHealth.errors++; showErrorIndicator(cmd);
+          }
+        }, attempt === 0 ? 3000 : retryDelay);
+      };
       entry.timeoutId = scheduleRetry(cmdId, 0);
-    } catch (err) {
-      commandQueue.push(cmd);
-      connectionHealth.errors++;
-    }
-  } else {
-    commandQueue.push(cmd);
-    if (!ws || ws.readyState === WebSocket.CLOSED) connect();
-  }
+    } catch (err) { commandQueue.push(cmd); connectionHealth.errors++; }
+  } else { commandQueue.push(cmd); if (!ws || ws.readyState === WebSocket.CLOSED) connect(); }
 }
 
 function fireCmd(btn, cmd) {
@@ -775,35 +378,45 @@ function fireCmd(btn, cmd) {
     return;
   }
 
+  // Handle Remote
   send(cmd);
-  playLocal(cmd);  // ← play locally if toggle is on
   document.getElementById('lastCmd').textContent = `LAST CMD: ${cmd}`;
+
+  // Handle Local Audio
+  if (localAudioEnabled) {
+    if (cmd === 'STOP') {
+      if (breathLocalAudio) { breathLocalAudio.pause(); breathLocalAudio = null; }
+      if (currentLocalAudio) { currentLocalAudio.pause(); currentLocalAudio = null; }
+    } else if (audioFiles[cmd]) {
+      const audio = new Audio(audioFiles[cmd]);
+      if (cmd === 'BREATH') {
+        audio.loop = true;
+        breathLocalAudio = audio;
+        audio.play();
+      } else {
+        if (currentLocalAudio) currentLocalAudio.pause();
+        currentLocalAudio = audio;
+        audio.play();
+      }
+    }
+  }
 
   const baseDuration = audioDurations[cmd] || globalCooldownDuration;
   const cooldownTime = baseDuration + 500;
   globalCooldown = now + cooldownTime;
 
-  btn.classList.remove('ripple');
-  void btn.offsetWidth;
-  btn.classList.add('ripple');
+  btn.classList.remove('ripple'); void btn.offsetWidth; btn.classList.add('ripple');
   setTimeout(() => btn.classList.remove('ripple'), 400);
 
   if (activeProgressBar) activeProgressBar.remove();
   const progressBar = document.createElement('div');
-  progressBar.style.cssText = `
-    position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
-    width: 200px; height: 8px; background: rgba(255,136,0,0.2);
-    border-radius: 4px; overflow: hidden; pointer-events: none; z-index: 1000;
-    border: 1px solid var(--amber); box-shadow: 0 0 20px rgba(255,136,0,0.5);
-  `;
+  progressBar.style.cssText = `position: fixed; bottom: 50px; left: 50%; transform: translateX(-50%); width: 200px; height: 4px; background: rgba(255,136,0,0.2); border: 1px solid var(--amber); z-index: 1000;`;
   const progressFill = document.createElement('div');
-  progressFill.style.cssText = `
-    height: 100%; background: linear-gradient(90deg, var(--amber), var(--red-glow));
-    width: 0%; box-shadow: 0 0 10px rgba(255,136,0,0.8);
-  `;
+  progressFill.style.cssText = `height: 100%; background: var(--amber); width: 0%;`;
   progressBar.appendChild(progressFill);
   document.body.appendChild(progressBar);
   activeProgressBar = progressBar;
+
   const startTime = Date.now();
   const updateProgress = () => {
     const progress = Math.min((Date.now() - startTime) / cooldownTime, 1);
@@ -814,46 +427,14 @@ function fireCmd(btn, cmd) {
   requestAnimationFrame(updateProgress);
 }
 
-function startBreathing(btn) {
-  const now = Date.now();
-  if (now < globalCooldown) {
-    btn.disabled = true; btn.style.opacity = '0.6';
-    setTimeout(() => { btn.disabled = false; btn.style.opacity = ''; }, 300);
-    return;
-  }
-  
-  breathingOn = true;
-  updateBreathUI();
-  fireCmd(btn, 'BREATH');
-}
-
-function stopBreathing(btn) {
-  const now = Date.now();
-  if (now < globalCooldown) {
-    btn.disabled = true; btn.style.opacity = '0.6';
-    setTimeout(() => { btn.disabled = false; btn.style.opacity = ''; }, 300);
-    return;
-  }
-  
-  breathingOn = false;
-  updateBreathUI();
-  fireCmd(btn, 'STOP');
-}
-
+function startBreathing(btn) { breathingOn = true; updateBreathUI(); fireCmd(btn, 'BREATH'); }
+function stopBreathing(btn) { breathingOn = false; updateBreathUI(); fireCmd(btn, 'STOP'); }
 function showErrorIndicator(command) {
   const el = document.getElementById('lastCmd');
-  const original = el.textContent;
-  el.textContent = `COMMAND FAILED: ${command}`;
-  el.style.color = 'var(--red-glow)';
-  setTimeout(() => { el.textContent = original; el.style.color = ''; }, 3000);
+  el.textContent = `COMMAND FAILED: ${command}`; el.style.color = 'var(--red-glow)';
+  setTimeout(() => { el.style.color = ''; }, 3000);
 }
-
-function clearErrorIndicator() {
-  const el = document.getElementById('lastCmd');
-  if (el.textContent.includes('COMMAND FAILED')) {
-    el.textContent = 'LAST CMD: —'; el.style.color = '';
-  }
-}
+function clearErrorIndicator() { const el = document.getElementById('lastCmd'); if (el.textContent.includes('FAILED')) { el.textContent = 'LAST CMD: —'; el.style.color = ''; } }
 
 loadAudioDurations();
 connect();
